@@ -1,0 +1,19 @@
+README.md
+
+# Salida de CORSIKA — pueden pesar decenas de GB
+sim/output/
+sim/atmosphere/
+
+# Archivos comprimidos del código CORSIKA
+*.tar.gz
+*.tar.bz2
+
+# Binarios compilados
+*.o
+*.a
+corsika-78050/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
