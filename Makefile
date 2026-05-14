@@ -189,6 +189,10 @@ sync-output: check-env  ## Descargar sim/output/ del servidor a local
 
 # -- Limpieza ----------------------------------------------------------------
 
+.PHONY: test
+test:  ## Correr tests de analysis/ con pytest (usa env conda local)
+	python3 -m pytest tests/ -v
+
 .PHONY: clean
 clean:  ## Borrar imagenes locales
 	-docker rmi $(CORSIKA_IMAGE) $(ML_IMAGE) 2>/dev/null

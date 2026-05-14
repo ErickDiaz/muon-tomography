@@ -469,19 +469,32 @@ class CorsikaRun:
         self.lst_path = lsts[0] if lsts else None
 
     @property
+    def has_lst(self) -> bool:
+        return self.lst_path is not None and self.lst_path.exists()
+
+    @property
+    def has_long(self) -> bool:
+        """False si la corrida uso `LONGI F` (no genera .long)."""
+        return self.long_path is not None and self.long_path.exists()
+
+    @property
+    def has_dat(self) -> bool:
+        return self.dat_path is not None and self.dat_path.exists()
+
+    @property
     def lst(self) -> LstFile:
-        if self.lst_path is None:
+        if not self.has_lst:
             raise FileNotFoundError(f"no se encontro .lst en {self.output_dir}")
         return LstFile(self.lst_path)
 
     @property
     def long(self) -> LongFile:
-        if self.long_path is None:
+        if not self.has_long:
             raise FileNotFoundError(f"no se encontro .long en {self.output_dir}")
         return LongFile(self.long_path)
 
     @property
     def particles(self) -> ParticleFile:
-        if self.dat_path is None:
+        if not self.has_dat:
             raise FileNotFoundError(f"no se encontro DAT en {self.output_dir}")
         return ParticleFile(self.dat_path)
