@@ -4,7 +4,7 @@ NSHOW   500
 * Volcán Acatenango — rol: calibración primaria
 * Composición: andesita (ρ ≈ 2.6 g/cm³) — opacidad analíticamente calculable
 * Permite validar el pipeline completo antes de aplicarlo a Fuego
-PRMPAR  1
+PRMPAR  14
 ESLOPE  -2.7
 ERANGE  1.E1  1.E5
 THETAP  0.  89.

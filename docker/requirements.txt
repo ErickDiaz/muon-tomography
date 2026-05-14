@@ -2,7 +2,11 @@
 # Post-procesamiento de salida CORSIKA + manejo de datos geoespaciales y atmosfericos.
 # NO incluye PyTorch/CUDA — eso vive en thesis-ml.
 
-# Lectura de archivos DAT de CORSIKA 7
+# Lectura de archivos DAT de CORSIKA 7 (corsikaio es el lector puro;
+# corsika-panama lo trae como dependencia pero lo listamos suelto para
+# entornos locales sin CORSIKA instalado).
+# >=0.6 trae soporte para CORSIKA 7.8050 (release Dec 2025).
+corsikaio>=0.6
 corsika-panama>=0.6
 
 # Numerico y datos

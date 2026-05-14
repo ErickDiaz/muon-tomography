@@ -1,8 +1,8 @@
 RUNNR   1001
 EVTNR   1
 NSHOW   500
-* Primario: protón (primera aproximación, ~90% del flujo de rayos cósmicos)
-PRMPAR  1
+* Primario: protón (ID 14 en CORSIKA; primera aproximación, ~90% del flujo)
+PRMPAR  14
 * Espectro diferencial dN/dE ∝ E^(-2.7) — estándar debajo del knee
 ESLOPE  -2.7
 * Rango de energía primaria: 10 GeV a 100 TeV

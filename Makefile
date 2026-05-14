@@ -91,6 +91,7 @@ shell-ml:  ## Abrir shell interactiva en thesis-ml (con GPU)
 .PHONY: test-corsika
 test-corsika:  ## Correr fuego_test.inp (500 showers, ~8 min)
 	@mkdir -p sim/output
+	@rm -f sim/output/DAT001001 sim/output/DAT001001.long sim/output/fuego_test.lst
 	docker run $(RUN_FLAGS) $(CORSIKA_IMAGE) bash -c \
 		"cd /opt/corsika/run && \
 		 corsika < /work/sim/steering/fuego_test.inp > /work/sim/output/fuego_test.lst && \

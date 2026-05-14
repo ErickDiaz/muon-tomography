@@ -6,7 +6,7 @@ NSHOW   500
 * Composición: andesita/basalto-andesita (ρ ≈ 2.65 g/cm³)
 * Cono bien preservado: DEM de alta resolución disponible — ideal para ray-tracing
 * Próximo a Antigua Guatemala: excelente acceso logístico
-PRMPAR  1
+PRMPAR  14
 ESLOPE  -2.7
 ERANGE  1.E1  1.E5
 THETAP  0.  89.

@@ -3,7 +3,7 @@ EVTNR   1
 * Corrida de producción: 50,000 showers para estadística suficiente
 * Cambiar RUNNR en cada corrida paralela para evitar colisiones de output
 NSHOW   50000
-PRMPAR  1
+PRMPAR  14
 ESLOPE  -2.7
 ERANGE  1.E1  1.E5
 THETAP  0.  89.

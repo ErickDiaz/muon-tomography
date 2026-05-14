@@ -5,7 +5,7 @@ NSHOW   500
 * Ventaja logística: ~30 km de Ciudad de Guatemala
 * Altitud menor (2552 m): flujo de muones ligeramente diferente que volcanes altos
 * Composición: basalto de olivino (ρ ≈ 2.9 g/cm³)
-PRMPAR  1
+PRMPAR  14
 ESLOPE  -2.7
 ERANGE  1.E1  1.E5
 THETAP  0.  89.
