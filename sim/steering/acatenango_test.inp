@@ -1,0 +1,29 @@
+RUNNR   2001
+EVTNR   1
+NSHOW   500
+* Volcán Acatenango — rol: calibración primaria
+* Composición: andesita (ρ ≈ 2.6 g/cm³) — opacidad analíticamente calculable
+* Permite validar el pipeline completo antes de aplicarlo a Fuego
+PRMPAR  1
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    1002 0 0
+SEED    2002 0 0
+SEED    3002 0 0
+* Altitud de observación: valle SW de Acatenango (~2000 m)
+* Acatenango tiene 3976 msnm — el telescopio se coloca a menor altitud con visión al cono
+OBSLEV  200000.
+* Campo geomagnético — Acatenango (14.50°N, 90.88°W) — casi idéntico a Fuego
+MAGNET  28.6  30.4
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   T  20.  T  T
+MAXPRT  1
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

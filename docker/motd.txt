@@ -1,0 +1,15 @@
+============================================================================
+thesis-corsika — CORSIKA 7.8050 (QGSJET-II-04 + GHEISHA + CURVED)
+============================================================================
+  Binario CORSIKA:        corsika  (alias en PATH)
+  Directorio run:         $CORSIKA_RUN
+  Documentacion:          /opt/corsika/doc/
+  Working dir:            /work
+  Volumenes esperados:    /work/sim, /work/data
+
+  Ejemplo (steering montado):
+    corsika < /work/sim/steering/fuego_test.inp > /work/sim/output/fuego_test.lst
+
+  Lectura DAT con Python:
+    python3 -c "import corsika_panama as cp; ..."
+============================================================================

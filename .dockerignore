@@ -1,0 +1,50 @@
+# Excluye del build context todo lo que no se necesita en la imagen.
+# IMPORTANTE: corsika-78050.tar.gz SÍ debe entrar al build context — no excluir tarballs.
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# PDFs grandes (papers de referencia) — no se necesitan en runtime
+*.pdf
+
+# Outputs CORSIKA — se montan como volumen, no van en la imagen
+sim/output/
+sim/atmosphere/
+
+# Fuente CORSIKA ya extraída localmente (se extrae dentro del build)
+corsika-78050/
+corsika-78010/
+
+# Caches Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.ipynb_checkpoints
+**/.pytest_cache
+
+# Docs / READMEs no necesarios en runtime
+docs/
+README.md
+docker/README.md
+
+# Datos pesados (DEMs, ERA5) — se montan como volumen
+data/
+*.tif
+*.tiff
+*.hgt
+*.nc
+*.grb
+*.grib
+
+# Logs y temporales
+*.log
+*.tmp
+.DS_Store

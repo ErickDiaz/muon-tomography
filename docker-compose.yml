@@ -1,0 +1,51 @@
+# Orquestacion de los dos servicios del proyecto.
+#
+# Uso:
+#   docker compose build corsika           # construir solo CORSIKA
+#   docker compose run --rm corsika        # shell interactiva en CORSIKA
+#   docker compose run --rm ml             # shell interactiva en ML (requiere GPU)
+#   docker compose run --rm corsika \
+#       bash -c "corsika < /work/sim/steering/fuego_test.inp > /work/sim/output/fuego_test.lst"
+
+services:
+
+  corsika:
+    image: thesis-corsika:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.corsika
+      args:
+        CORSIKA_VERSION: "78050"
+    container_name: thesis-corsika
+    working_dir: /work
+    volumes:
+      - ./sim:/work/sim                  # steering files + output CORSIKA
+      - ./data:/work/data                # DEMs, perfiles ERA5
+      - ./scripts:/work/scripts          # scripts de analisis (Python)
+    stdin_open: true
+    tty: true
+    # Sin limites de recursos: el contenedor usa lo que haya en el host.
+
+  ml:
+    image: thesis-ml:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ml
+    container_name: thesis-ml
+    working_dir: /work
+    volumes:
+      - ./sim:/work/sim                  # datasets generados por CORSIKA
+      - ./ml:/work/ml                    # codigo y checkpoints ML
+      - ./data:/work/data                # datos compartidos con CORSIKA
+    stdin_open: true
+    tty: true
+    # GPU passthrough — requiere nvidia-container-toolkit instalado en el host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Compartir memoria para DataLoader workers de PyTorch
+    shm_size: "8gb"

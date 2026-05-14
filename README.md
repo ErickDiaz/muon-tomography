@@ -37,6 +37,23 @@ de calibración con composición petroquímica conocida.
 | [`docs/idea_principal.md`](docs/idea_principal.md) | Propuesta de tesis refinada, volcanes, hipótesis |
 | [`docs/plan_implementacion.md`](docs/plan_implementacion.md) | Plan por fases y estructura de capítulos |
 | [`docs/corsika_parametros.md`](docs/corsika_parametros.md) | Parámetros CORSIKA con justificación física detallada |
-| [`docs/corsika_instalacion.md`](docs/corsika_instalacion.md) | Instalación, compilación y ejecución de CORSIKA 7.8010 |
+| [`docs/corsika_instalacion.md`](docs/corsika_instalacion.md) | Instalación, compilación y ejecución de CORSIKA 7.8050 |
 | [`sim/README.md`](sim/README.md) | Cómo correr las simulaciones y leer la salida |
 | [`sim/steering/`](sim/steering/) | Steering files listos para los 4 volcanes |
+| [`docker/README.md`](docker/README.md) | **Vía recomendada:** imágenes Docker para correr en servidor |
+
+---
+
+## Ejecución
+
+La forma recomendada de correr las simulaciones —tanto en local como en el servidor dedicado—
+es a través de las imágenes Docker provistas en [`docker/`](docker/). Ver
+[`docker/README.md`](docker/README.md) para detalles de construcción, transferencia y uso.
+
+Quick start (requiere `corsika-78050.tar.gz` en la raíz):
+
+```bash
+make build-corsika      # construir imagen (~20 min, una vez)
+make verify-corsika     # validar CORSIKA con ejemplo all-inputs
+make test-corsika       # correr fuego_test.inp (500 showers, ~8 min)
+```

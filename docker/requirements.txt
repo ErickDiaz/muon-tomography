@@ -1,0 +1,32 @@
+# Dependencias Python para la imagen thesis-corsika.
+# Post-procesamiento de salida CORSIKA + manejo de datos geoespaciales y atmosfericos.
+# NO incluye PyTorch/CUDA — eso vive en thesis-ml.
+
+# Lectura de archivos DAT de CORSIKA 7
+corsika-panama>=0.6
+
+# Numerico y datos
+numpy>=1.24
+scipy>=1.11
+pandas>=2.0
+pyarrow>=14.0       # Parquet (dataset ML Fase 3)
+h5py>=3.10          # almacenamiento intermedio de muogramas
+
+# Visualizacion
+matplotlib>=3.7
+seaborn>=0.13
+
+# Geoespacial (DEMs, ray-tracing topografico)
+rasterio>=1.3
+shapely>=2.0
+pyproj>=3.6
+
+# Atmosfera (ERA5)
+xarray>=2024.1
+netCDF4>=1.6
+cdsapi>=0.7         # cliente CDS Copernicus para descargar ERA5
+
+# Utilidades
+tqdm>=4.66
+click>=8.1
+pyyaml>=6.0

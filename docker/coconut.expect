@@ -1,0 +1,68 @@
+#!/usr/bin/expect -f
+#
+# Build no-interactivo de CORSIKA 7.8050 via coconut v3.1.
+#
+# Selecciones para esta tesis (muografia volcanica Guatemala):
+#   - 64bit (default)
+#   - HE hadronic: $env(HE_MODEL)
+#       1 = DPMJET-III (2017.1) + PHOJET 1.20.0   [default]
+#       2 = EPOS.LHC-R
+#       3 = QGSJETIII-01
+#       4 = SIBYLL 2.3e
+#   - LE hadronic: URQMD 1.3cr (3, default)
+#   - Detector geometry: horizontal flat (1, default)
+#   - Additional options: 7a (CURVED atmosphere, esencial para theta>70),
+#                         h  (MUPROD para muones que decaen)
+#   - Compile + remove temp files (default)
+#
+# Si coconut cambia de version y los prompts ya no calzan, correr ./coconut
+# manualmente una vez y ajustar este script. Cada bloque 'expect' espera una
+# subcadena distintiva del prompt correspondiente.
+#
+
+set timeout 1800
+log_user 1
+
+set he_model [expr {[info exists env(HE_MODEL)] ? $env(HE_MODEL) : "1"}]
+puts "INFO: building with HE_MODEL=$he_model"
+
+spawn ./coconut
+
+expect "32 or 64bit mode"
+send -- "\r"
+
+expect "high energy hadronic interaction model"
+send -- "$he_model\r"
+
+expect "low energy hadronic interaction model"
+send -- "3\r"
+
+expect "detector geometry"
+send -- "\r"
+
+expect "additional CORSIKA program options"
+send -- "7a\r"
+send -- "h\r"
+send -- "z\r"
+
+expect "Are you sure you want to continue"
+send -- "\r"
+
+expect "How do you want to proceed"
+send -- "\r"
+
+expect {
+    timeout {
+        puts "ERROR: timeout durante compilacion"
+        exit 1
+    }
+    eof
+}
+
+set binaries [glob -nocomplain "run/corsika*Linux*"]
+if {[llength $binaries] == 0} {
+    puts "ERROR: no se encontro binario CORSIKA en run/"
+    exit 1
+}
+puts "OK: binario encontrado: [lindex $binaries 0]"
+exit 0

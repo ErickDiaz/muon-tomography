@@ -1,0 +1,31 @@
+RUNNR   4001
+EVTNR   1
+NSHOW   500
+* Volcán de Agua — calibración secundaria
+* Considerado inactivo: no hay erupciones históricas confirmadas
+* Composición: andesita/basalto-andesita (ρ ≈ 2.65 g/cm³)
+* Cono bien preservado: DEM de alta resolución disponible — ideal para ray-tracing
+* Próximo a Antigua Guatemala: excelente acceso logístico
+PRMPAR  1
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    1004 0 0
+SEED    2004 0 0
+SEED    3004 0 0
+* Altitud de observación: San Juan del Obispo o Santa María de Jesús (~1700 m)
+* Volcán de Agua tiene 3760 msnm
+OBSLEV  170000.
+* Campo geomagnético — Volcán de Agua (14.46°N, 90.74°W)
+MAGNET  28.5  30.4
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   T  20.  T  T
+MAXPRT  1
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

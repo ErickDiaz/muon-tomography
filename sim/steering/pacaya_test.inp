@@ -1,0 +1,32 @@
+RUNNR   3001
+EVTNR   1
+NSHOW   500
+* Volcán Pacaya — candidato secundario
+* Ventaja logística: ~30 km de Ciudad de Guatemala
+* Altitud menor (2552 m): flujo de muones ligeramente diferente que volcanes altos
+* Composición: basalto de olivino (ρ ≈ 2.9 g/cm³)
+PRMPAR  1
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    1003 0 0
+SEED    2003 0 0
+SEED    3003 0 0
+* Altitud de observación: Cerro Chiquito norte (~1500 m)
+* Pacaya tiene 2552 msnm — observación desde colinas circundantes
+OBSLEV  150000.
+* Campo geomagnético — Pacaya (14.38°N, 90.60°W)
+MAGNET  28.4  30.2
+* Nota: a menor altitud el perfil atmosférico estándar es más preciso
+* Para producción usar igualmente ERA5 para consistencia entre volcanes
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   T  20.  T  T
+MAXPRT  1
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

@@ -1,0 +1,128 @@
+# =============================================================================
+# thesis-corsika — Imagen CORSIKA 7.8050 + Python para muografia volcanica
+# =============================================================================
+# Build:
+#   docker build -f docker/Dockerfile.corsika -t thesis-corsika .
+#
+# Run (con volumenes para steering files y output):
+#   docker run --rm -it \
+#     -v $(pwd)/sim:/work/sim \
+#     -v $(pwd)/data:/work/data \
+#     thesis-corsika
+#
+# Multi-stage: builder (gfortran + tarball + coconut) -> runtime (solo binario).
+# Imagen final ~2.5 GB.
+# =============================================================================
+
+ARG CORSIKA_VERSION=78050
+
+# -----------------------------------------------------------------------------
+# Stage 1: builder — compila CORSIKA y descarta todo lo demas
+# -----------------------------------------------------------------------------
+FROM ubuntu:22.04 AS builder
+
+ARG CORSIKA_VERSION
+ARG HE_MODEL=1
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV HE_MODEL=${HE_MODEL}
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gfortran \
+        gcc \
+        g++ \
+        make \
+        bzip2 \
+        expect \
+        perl \
+        ca-certificates \
+        file \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Copiar el tarball desde el build context y extraerlo
+COPY corsika-${CORSIKA_VERSION}.tar.gz .
+RUN tar -xzf corsika-${CORSIKA_VERSION}.tar.gz \
+    && rm corsika-${CORSIKA_VERSION}.tar.gz
+
+WORKDIR /build/corsika-${CORSIKA_VERSION}
+
+# Script expect que automatiza las preguntas de coconut
+COPY docker/coconut.expect /tmp/coconut.expect
+RUN chmod +x /tmp/coconut.expect
+
+# Compilar CORSIKA. Si el build falla, ver coconut.expect.
+RUN /tmp/coconut.expect
+
+# Verificar que se genero el binario y dejarlo en una ruta predecible
+RUN BIN=$(ls run/corsika*Linux* 2>/dev/null | head -n1) \
+    && if [ -z "$BIN" ]; then echo "ERROR: binario CORSIKA no encontrado" && ls -la run/ && exit 1; fi \
+    && echo "Binario CORSIKA: $BIN" \
+    && cp "$BIN" run/corsika.bin \
+    && file run/corsika.bin
+
+
+# -----------------------------------------------------------------------------
+# Stage 2: runtime — Python + binario CORSIKA, sin toolchain de compilacion
+# -----------------------------------------------------------------------------
+FROM ubuntu:22.04 AS runtime
+
+ARG CORSIKA_VERSION
+ARG DEBIAN_FRONTEND=noninteractive
+
+LABEL maintainer="Erick Diaz <thesis@ecfm.usac.edu.gt>"
+LABEL description="CORSIKA 7.8050 + Python para muografia volcanica Guatemala"
+LABEL corsika.version="7.8050"
+LABEL corsika.options="QGSJET-II-04 + GHEISHA + CURVED + MUON"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libgfortran5 \
+        python3 \
+        python3-pip \
+        python3-venv \
+        gdal-bin \
+        libgdal-dev \
+        proj-bin \
+        libproj-dev \
+        libgeos-dev \
+        libhdf5-dev \
+        libnetcdf-dev \
+        curl \
+        less \
+        vim-tiny \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Dependencias Python
+COPY docker/requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir --upgrade pip \
+    && pip3 install --no-cache-dir -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
+
+# Copiar CORSIKA compilado desde el builder
+# La carpeta run/ contiene el binario + tablas de seccion eficaz (QGSDAT*, SECTNU,
+# NUCNUCCS, etc.) que el ejecutable necesita en runtime.
+COPY --from=builder /build/corsika-${CORSIKA_VERSION}/run/ /opt/corsika/run/
+COPY --from=builder /build/corsika-${CORSIKA_VERSION}/src/utils/gdastool /opt/corsika/utils/gdastool
+COPY --from=builder /build/corsika-${CORSIKA_VERSION}/doc/ /opt/corsika/doc/
+
+# Symlink corto para invocar el binario por nombre fijo
+RUN ln -s /opt/corsika/run/corsika.bin /usr/local/bin/corsika
+
+ENV CORSIKA_DIR=/opt/corsika
+ENV CORSIKA_RUN=/opt/corsika/run
+ENV PATH="/opt/corsika/run:${PATH}"
+
+# Directorio de trabajo. El usuario monta aqui sim/ y data/.
+WORKDIR /work
+
+# Crear estructura esperada en /work — los montajes la sobreescriben en runtime
+RUN mkdir -p /work/sim/steering /work/sim/output /work/sim/atmosphere /work/data/dem
+
+# Mensaje al entrar al contenedor
+COPY docker/motd.txt /etc/motd
+RUN echo 'cat /etc/motd' >> /root/.bashrc
+
+CMD ["/bin/bash"]

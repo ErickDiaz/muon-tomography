@@ -1,0 +1,32 @@
+RUNNR   1101
+EVTNR   1
+* Corrida de producción: 50,000 showers para estadística suficiente
+* Cambiar RUNNR en cada corrida paralela para evitar colisiones de output
+NSHOW   50000
+PRMPAR  1
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+* Cambiar seeds en cada corrida paralela (RUNNR × offset)
+SEED    11010 0 0
+SEED    21010 0 0
+SEED    31010 0 0
+* Punto de observación 1: flanco norte de Acatenango (~2500 m)
+* Copiar y modificar OBSLEV y RUNNR para cada punto candidato
+OBSLEV  250000.
+MAGNET  28.6  30.5
+* Producción: usar perfil ERA5 para el mes de interés
+* Descomentar cuando el archivo ERA5 esté disponible:
+* ATMFILE  '/home/erick/Documents/ecfm/physics-master-thesis/sim/atmosphere/atm_fuego_enero.dat'
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+* En producción desactivar LONGI para reducir tamaño del log
+LONGI   F  20.  F  F
+MAXPRT  0
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

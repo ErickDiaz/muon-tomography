@@ -1,0 +1,48 @@
+RUNNR   1001
+EVTNR   1
+NSHOW   500
+* Primario: protón (primera aproximación, ~90% del flujo de rayos cósmicos)
+PRMPAR  1
+* Espectro diferencial dN/dE ∝ E^(-2.7) — estándar debajo del knee
+ESLOPE  -2.7
+* Rango de energía primaria: 10 GeV a 100 TeV
+* Cubre el rango relevante para muones que penetran el edificio volcánico de Fuego
+ERANGE  1.E1  1.E5
+* Ángulo cenital 0-89°: necesario para muografía (muones casi horizontales ~80°)
+* Requiere compilación con geometría CURVED
+THETAP  0.  89.
+* Ángulo azimutal: todas las direcciones (se filtra en el ray-tracing)
+PHIP    0.  360.
+* Semillas del generador random (cambiar SEED para corridas independientes)
+SEED    1001 0 0
+SEED    2001 0 0
+SEED    3001 0 0
+* Altitud de observación: ~2000 m (flanco norte de Acatenango, punto de vista al Fuego)
+* Cambiar para cada punto candidato de observación
+OBSLEV  200000.
+* Campo geomagnético Guatemala — VERIFICAR con IGRF-13 en ngdc.noaa.gov
+* Bx: componente horizontal apuntando al norte geográfico (µT)
+* Bz: componente vertical apuntando hacia abajo / al suelo (µT)
+* Coordenadas Fuego: 14.47°N 90.88°W — valores IGRF-13 aproximados para 2025
+MAGNET  28.6  30.5
+* Modelo atmosférico: US Standard (usar ATMFILE con ERA5 en producción)
+ATMOD   1
+* Modelos hadrónicos (configurados en tiempo de compilación con coconut)
+* Alta energía: QGSJET-II-04 / Baja energía: GHEISHA-2002
+HADFLG  0 1 0 1 0 2
+* Energías de corte: hadrones, muones, electrones, fotones (GeV)
+* Muones en 0.01 GeV (10 MeV) para capturar flujo de baja energía a alta altitud
+ECUTS   0.3  0.01  0.003  0.003
+* Información adicional de muones — imprescindible para muografía
+MUADDI  T
+* Interacciones múltiples de muones (straggling en pérdida de energía)
+MUMULT  T
+* Perfil longitudinal del shower (paso 20 g/cm²)
+LONGI   T  20.  T  T
+* Solo imprimir detalle del primer evento en el log
+MAXPRT  1
+* Activar salida de partículas al nivel de observación
+PAROUT  T  F
+* Nombre del archivo de salida
+DIRECT  /work/sim/output/
+EXIT
