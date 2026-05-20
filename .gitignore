@@ -2,6 +2,12 @@
 sim/output/
 sim/atmosphere/
 
+# Steering generado por `make corsika-run` (template + sed)
+sim/steering/fuego_run.inp
+
+# Logs de corridas en servidor (rsync-generated)
+logs/
+
 # Archivos comprimidos del código CORSIKA
 *.tar.gz
 *.tar.bz2
@@ -24,3 +30,12 @@ __pycache__/
 # Imagenes Docker exportadas
 thesis-corsika-*.tar.gz
 thesis-ml-*.tar.gz
+
+# DEMs y datos georeferenciados (decenas de MB c/u, descargables con make download-dem)
+data/dem/*.tif
+data/dem/*.hgt
+data/dem/*.zip
+
+# Export PDF/HTML de notebooks (regenerable con make export-notebooks-pdf)
+notebooks_resumen.pdf
+notebooks_resumen.html
