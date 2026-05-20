@@ -34,6 +34,7 @@ de calibración con composición petroquímica conocida.
 
 | Documento | Descripción |
 |-----------|-------------|
+| [`COMO_CORRER.md`](COMO_CORRER.md) | **Pipeline end-to-end paso a paso** (setup → simulación → análisis) |
 | [`docs/idea_principal.md`](docs/idea_principal.md) | Propuesta de tesis refinada, volcanes, hipótesis |
 | [`docs/plan_implementacion.md`](docs/plan_implementacion.md) | Plan por fases y estructura de capítulos |
 | [`docs/corsika_parametros.md`](docs/corsika_parametros.md) | Parámetros CORSIKA con justificación física detallada |

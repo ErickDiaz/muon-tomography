@@ -38,7 +38,7 @@ RUN_FLAGS := --rm \
 .PHONY: help
 help:  ## Mostrar esta ayuda
 	@echo "Targets disponibles:"
-	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # -- Verificaciones ----------------------------------------------------------
@@ -97,6 +97,85 @@ test-corsika:  ## Correr fuego_test.inp (500 showers, ~8 min)
 		 corsika < /work/sim/steering/fuego_test.inp > /work/sim/output/fuego_test.lst && \
 		 grep 'END OF RUN' /work/sim/output/fuego_test.lst && \
 		 echo 'OK: simulacion completa'"
+
+# Parametros para corsika-run / server-run
+# RUNNR se asigna leyendo sim/runs.csv (max+1). Sequence-based, no derivado de
+# NSHOW: evita colisiones entre volcanes que corran con el mismo NSHOW.
+# VOLCAN y DETECTOR_POS son requeridos (default: fuego / 1).
+NSHOW        ?= 5000
+VOLCAN       ?= fuego
+DETECTOR_POS ?= 1
+
+# Helper: usa anaconda env si python3 no es la system shell
+PY_NEXT_RUNNR := python3 scripts/_next_runnr.py 2>/dev/null || $(HOME)/anaconda3/envs/muon-tomography/bin/python3 scripts/_next_runnr.py
+
+.PHONY: corsika-run
+corsika-run:  ## Corrida parametrica. Vars: VOLCAN={fuego,acatenango,pacaya,agua} DETECTOR_POS=1 NSHOW=10000. Registra en sim/runs.csv.
+	@test -f sim/steering/$(VOLCAN)_template.inp || \
+		(echo "ERROR: no existe sim/steering/$(VOLCAN)_template.inp (volcanes: fuego, acatenango, pacaya, agua)" && exit 1)
+	@mkdir -p sim/output logs/steering logs/lst
+	@RUNNR_INT=$$($(PY_NEXT_RUNNR)); \
+	 RUNNR=$$(printf '%06d' $$RUNNR_INT); \
+	 SEED1=$$((RUNNR_INT * 10 + 1)); \
+	 SEED2=$$((RUNNR_INT * 10 + 10001)); \
+	 SEED3=$$((RUNNR_INT * 10 + 20001)); \
+	 sed -e "s/@NSHOW@/$(NSHOW)/g" \
+	     -e "s/@RUNNR@/$$RUNNR_INT/g" \
+	     -e "s/@SEED1@/$$SEED1/g" \
+	     -e "s/@SEED2@/$$SEED2/g" \
+	     -e "s/@SEED3@/$$SEED3/g" \
+	     sim/steering/$(VOLCAN)_template.inp > sim/steering/$(VOLCAN)_run.inp; \
+	 echo "VOLCAN=$(VOLCAN) pos=$(DETECTOR_POS) NSHOW=$(NSHOW) RUNNR=$$RUNNR → sim/output/DAT$$RUNNR"; \
+	 rm -f sim/output/DAT$$RUNNR sim/output/$(VOLCAN)_run.lst; \
+	 bash scripts/run_and_time.sh $(VOLCAN) $(DETECTOR_POS) $(NSHOW) $$RUNNR_INT $(HE_MODEL) $(CORSIKA_IMAGE) $(PWD)
+
+.PHONY: runs
+runs:  ## Mostrar el manifest sim/runs.csv con columnas alineadas
+	@test -f sim/runs.csv || (echo "sin sim/runs.csv aun (correr alguna corsika-run primero)"; exit 0)
+	@column -t -s, sim/runs.csv
+
+.PHONY: backfill-runs
+backfill-runs:  ## Re-escanear sim/output/ y agregar runs faltantes al manifest
+	@python3 scripts/backfill_runs_manifest.py 2>/dev/null || $(HOME)/anaconda3/envs/muon-tomography/bin/python3 scripts/backfill_runs_manifest.py
+
+.PHONY: sync-runs
+sync-runs: check-env  ## Bajar sim/runs.csv del server y mergear con local (dedup por runnr)
+	@TMP=$$(mktemp); \
+	 rsync -az -e "ssh -p $(SSH_PORT) $(SSH_KEY_FLAG)" \
+		$(SERVER_USER)@$(SERVER_HOST):$(SERVER_PROJECT_DIR)/sim/runs.csv \
+		$$TMP 2>/dev/null || { echo "server no tiene sim/runs.csv aun"; rm -f $$TMP; exit 0; }; \
+	 if [ ! -f sim/runs.csv ]; then \
+		mv $$TMP sim/runs.csv; \
+		echo "sin local previo, copiado del server"; \
+	 else \
+		(head -1 sim/runs.csv; \
+		 (tail -n +2 sim/runs.csv; tail -n +2 $$TMP) | sort -t, -u -k1,1n) > sim/runs.merged.csv && \
+		mv sim/runs.merged.csv sim/runs.csv && \
+		rm -f $$TMP && \
+		echo "merged. ahora: make runs"; \
+	 fi
+
+.PHONY: prod-corsika
+prod-corsika:  ## Correr fuego_prod.inp (50k showers, ~13h). RUNNR=1101 → DAT001101
+	@mkdir -p sim/output
+	@rm -f sim/output/DAT001101 sim/output/fuego_prod.lst
+	docker run $(RUN_FLAGS) $(CORSIKA_IMAGE) bash -c \
+		"cd /opt/corsika/run && \
+		 corsika < /work/sim/steering/fuego_prod.inp > /work/sim/output/fuego_prod.lst && \
+		 grep 'END OF RUN' /work/sim/output/fuego_prod.lst && \
+		 echo 'OK: prod completa'"
+
+# -- Datos georeferenciados --------------------------------------------------
+
+DEM_TILE := Copernicus_DSM_COG_10_N14_00_W091_00_DEM.tif
+DEM_URL  := https://copernicus-dem-30m.s3.amazonaws.com/$(basename $(DEM_TILE))/$(DEM_TILE)
+
+.PHONY: download-dem
+download-dem:  ## Bajar el tile Copernicus DEM 30m que cubre el Fuego (~44 MB, sin auth)
+	@mkdir -p data/dem
+	@test -f data/dem/$(DEM_TILE) && echo "Ya existe: data/dem/$(DEM_TILE)" || \
+		curl -fsSL -o data/dem/$(DEM_TILE) $(DEM_URL)
+	@ls -lh data/dem/$(DEM_TILE)
 
 .PHONY: verify-corsika
 verify-corsika:  ## Validar la imagen ejecutando el ejemplo all-inputs de CORSIKA
@@ -160,6 +239,24 @@ server-setup: check-env  ## Setup completo: libs + Docker (idempotente, alias de
 ssh: check-env  ## Abrir shell SSH en el servidor
 	$(SSH_CMD)
 
+.PHONY: sync-code
+sync-code: check-env  ## Rsync solo de codigo al servidor (sin tarball, sin rebuild Docker)
+	rsync -avz --delete \
+		-e "ssh -p $(SSH_PORT) $(SSH_KEY_FLAG)" \
+		--exclude='.git/' \
+		--exclude='.env' \
+		--exclude='*.pdf' \
+		--exclude='sim/output/' \
+		--exclude='sim/steering/fuego_run.inp' \
+		--exclude='sim/timings.csv' \
+		--exclude='data/' \
+		--exclude='logs/' \
+		--exclude='__pycache__/' \
+		--exclude='*.pyc' \
+		--exclude='corsika-*/' \
+		--exclude='*.tar.gz' \
+		./ $(SERVER_USER)@$(SERVER_HOST):$(SERVER_PROJECT_DIR)/
+
 .PHONY: deploy
 deploy: check-env check-tarball  ## Transferir codigo + tarball + construir imagen en servidor
 	bash scripts/deploy.sh
@@ -175,6 +272,49 @@ server-verify: check-env  ## Validar CORSIKA en el servidor
 .PHONY: server-test
 server-test: check-env  ## Correr fuego_test.inp en el servidor
 	$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && make test-corsika"
+
+# Nombre de la sesion tmux: incluye volcan y nshow para permitir multi-volcan paralelo.
+SERVER_SESSION := corsika-$(VOLCAN)-$(NSHOW)
+
+.PHONY: server-run
+server-run: check-env  ## Corrida parametrica en server con tmux. Vars: VOLCAN=fuego DETECTOR_POS=1 NSHOW=10000
+	@$(SSH_CMD) "command -v tmux >/dev/null || (echo 'tmux no instalado; ejecutar make server-libs'; exit 1)"
+	@$(SSH_CMD) "tmux has-session -t $(SERVER_SESSION) 2>/dev/null && \
+		(echo 'sesion $(SERVER_SESSION) ya existe; usar make server-run-status VOLCAN=$(VOLCAN) NSHOW=$(NSHOW)'; exit 1) || true"
+	$(SSH_CMD) "mkdir -p $(SERVER_PROJECT_DIR)/logs && \
+		cd $(SERVER_PROJECT_DIR) && \
+		tmux new-session -d -s $(SERVER_SESSION) \
+		  'make corsika-run VOLCAN=$(VOLCAN) DETECTOR_POS=$(DETECTOR_POS) NSHOW=$(NSHOW) 2>&1 | tee logs/run-$(VOLCAN)-$(NSHOW)-$$(date +%Y%m%d-%H%M%S).log'"
+	@echo "OK: $(VOLCAN) pos=$(DETECTOR_POS) NSHOW=$(NSHOW) arrancada en tmux $(SERVER_SESSION). Monitor: make server-run-status VOLCAN=$(VOLCAN) NSHOW=$(NSHOW)"
+
+.PHONY: server-run-status
+server-run-status: check-env  ## Estado de la corrida parametrica. Vars: VOLCAN=fuego NSHOW=10000
+	@$(SSH_CMD) "tmux has-session -t $(SERVER_SESSION) 2>/dev/null && echo 'sesion ACTIVA' || echo 'sesion TERMINADA o nunca arranco'"
+	@$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && ls -1t logs/run-$(VOLCAN)-$(NSHOW)-*.log 2>/dev/null | head -1 | xargs -r tail -25"
+
+.PHONY: server-run-attach
+server-run-attach: check-env  ## Adjuntar a la sesion tmux parametrica. Vars: VOLCAN=fuego NSHOW=10000 (Ctrl+B D detach)
+	$(SSH_TTY) "tmux attach-session -t $(SERVER_SESSION)"
+
+.PHONY: server-prod
+server-prod: check-env  ## Correr prod-corsika en server en tmux detached (~13h)
+	@$(SSH_CMD) "command -v tmux >/dev/null || (echo 'tmux no instalado; ejecutar make server-libs'; exit 1)"
+	@$(SSH_CMD) "tmux has-session -t corsika-prod 2>/dev/null && \
+		(echo 'sesion corsika-prod ya existe; usar make server-prod-status'; exit 1) || true"
+	$(SSH_CMD) "mkdir -p $(SERVER_PROJECT_DIR)/logs && \
+		cd $(SERVER_PROJECT_DIR) && \
+		tmux new-session -d -s corsika-prod \
+		  'make prod-corsika 2>&1 | tee logs/prod-$$(date +%Y%m%d-%H%M%S).log'"
+	@echo "OK: prod arrancada en tmux. Monitor: make server-prod-status"
+
+.PHONY: server-prod-status
+server-prod-status: check-env  ## Ver tail del log y estado de tmux de la prod en server
+	@$(SSH_CMD) "tmux has-session -t corsika-prod 2>/dev/null && echo 'sesion ACTIVA' || echo 'sesion TERMINADA o nunca arranco'"
+	@$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && ls -1t logs/prod-*.log 2>/dev/null | head -1 | xargs -r tail -25"
+
+.PHONY: server-prod-attach
+server-prod-attach: check-env  ## Adjuntar a la sesion tmux (Ctrl+B D para detach)
+	$(SSH_TTY) "tmux attach-session -t corsika-prod"
 
 .PHONY: server-logs
 server-logs: check-env  ## Tail del ultimo .lst en sim/output/ del servidor
@@ -192,6 +332,10 @@ sync-output: check-env  ## Descargar sim/output/ del servidor a local
 .PHONY: test
 test:  ## Correr tests de analysis/ con pytest (usa env conda local)
 	python3 -m pytest tests/ -v
+
+.PHONY: export-notebooks-pdf
+export-notebooks-pdf:  ## Exportar markdown de todos los notebooks a notebooks_resumen.pdf (sin codigo, sin to-dos)
+	python3 scripts/export_notebooks_pdf.py
 
 .PHONY: clean
 clean:  ## Borrar imagenes locales
