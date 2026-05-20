@@ -1,0 +1,28 @@
+* Template paramétrico para Volcán de Agua — se genera *_run.inp via sed en `make corsika-run`.
+* Placeholders: @NSHOW@ @RUNNR@ @SEED1@ @SEED2@ @SEED3@
+* Volcán de Agua (14.46°N, 90.74°W), 3760 msnm. Andesita-basalto (ρ ≈ 2.65 g/cm³).
+RUNNR   @RUNNR@
+EVTNR   1
+NSHOW   @NSHOW@
+PRMPAR  14
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    @SEED1@ 0 0
+SEED    @SEED2@ 0 0
+SEED    @SEED3@ 0 0
+* Altitud de observación: San Juan del Obispo / Santa María de Jesús (~1700 m)
+OBSLEV  170000.
+* Campo geomagnético IGRF-13 ~2025
+MAGNET  28.5  30.4
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   F  20.  F  F
+MAXPRT  0
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

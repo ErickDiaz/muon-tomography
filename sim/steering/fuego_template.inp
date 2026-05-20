@@ -1,0 +1,29 @@
+* Template parametrico — se genera fuego_run.inp via sed en `make corsika-run`.
+* Placeholders: @NSHOW@ @RUNNR@ @SEED1@ @SEED2@ @SEED3@
+* No editar manualmente esta corrida; ver fuego_test.inp / fuego_prod.inp.
+RUNNR   @RUNNR@
+EVTNR   1
+NSHOW   @NSHOW@
+* Primario: proton (ID 14)
+PRMPAR  14
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+* Cenital 0-89; requiere CURVED
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    @SEED1@ 0 0
+SEED    @SEED2@ 0 0
+SEED    @SEED3@ 0 0
+* OBSLEV alineado con fuego_prod.inp (~2500 m, flanco norte de Acatenango)
+OBSLEV  250000.
+MAGNET  28.6  30.5
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   F  20.  F  F
+MAXPRT  0
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT

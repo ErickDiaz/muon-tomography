@@ -1,0 +1,28 @@
+* Template paramétrico para Volcán Pacaya — se genera *_run.inp via sed en `make corsika-run`.
+* Placeholders: @NSHOW@ @RUNNR@ @SEED1@ @SEED2@ @SEED3@
+* Pacaya (14.38°N, 90.60°W), 2552 msnm. Basalto de olivino (ρ ≈ 2.9 g/cm³).
+RUNNR   @RUNNR@
+EVTNR   1
+NSHOW   @NSHOW@
+PRMPAR  14
+ESLOPE  -2.7
+ERANGE  1.E1  1.E5
+THETAP  0.  89.
+PHIP    0.  360.
+SEED    @SEED1@ 0 0
+SEED    @SEED2@ 0 0
+SEED    @SEED3@ 0 0
+* Altitud de observación: Cerro Chiquito norte (~1500 m)
+OBSLEV  150000.
+* Campo geomagnético IGRF-13 ~2025
+MAGNET  28.4  30.2
+ATMOD   1
+HADFLG  0 1 0 1 0 2
+ECUTS   0.3  0.01  0.003  0.003
+MUADDI  T
+MUMULT  T
+LONGI   F  20.  F  F
+MAXPRT  0
+PAROUT  T  F
+DIRECT  /work/sim/output/
+EXIT
