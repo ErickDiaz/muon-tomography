@@ -5,8 +5,10 @@
 # Lectura de archivos DAT de CORSIKA 7 (corsikaio es el lector puro;
 # corsika-panama lo trae como dependencia pero lo listamos suelto para
 # entornos locales sin CORSIKA instalado).
-# >=0.6 trae soporte para CORSIKA 7.8050 (release Dec 2025).
-corsikaio>=0.6
+# Pin flojo: corsikaio sigue emitiendo UnknownNewCORSIKA con MAX_VERSION=7.801
+# incluso en 0.6.x; ya validamos empiricamente que los offsets son correctos.
+# El upper bound <0.6 evita choque con Python 3.10 de la imagen Docker.
+corsikaio>=0.5,<0.6
 corsika-panama>=0.6
 
 # Numerico y datos
