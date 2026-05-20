@@ -108,12 +108,19 @@ ssh ${SSH_OPTS} "${SERVER}" "mkdir -p '${SERVER_PROJECT_DIR}'"
 log "sincronizando repo (rsync, sin .git ni outputs)"
 
 # rsync con exclusiones equivalentes a .dockerignore + .git
+# data/ excluido: DEM lo usa el analisis local, no CORSIKA; ademas el
+# bind mount de Docker en el server puede dejar el dir owned por root.
+# logs/ excluido: lo genera el server en las corridas tmux.
 rsync -avz --delete \
     -e "${RSYNC_SSH}" \
     --exclude='.git/' \
     --exclude='.env' \
     --exclude='*.pdf' \
     --exclude='sim/output/' \
+    --exclude='sim/steering/fuego_run.inp' \
+    --exclude='sim/timings.csv' \
+    --exclude='data/' \
+    --exclude='logs/' \
     --exclude='__pycache__/' \
     --exclude='*.pyc' \
     --exclude='corsika-*/' \

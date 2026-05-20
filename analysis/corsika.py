@@ -466,6 +466,13 @@ class CorsikaRun:
             self.long_path = long_candidate if long_candidate.exists() else None
 
         lsts = sorted(self.output_dir.glob("*.lst"))
+        # Si pidieron run_number explicito y hay varios .lst, escoger el que
+        # contenga "RUNNR <run_number>" para no mezclar metadata entre corridas.
+        if self.run_number is not None and len(lsts) > 1:
+            needle = re.compile(rf"^\s*RUNNR\s+{self.run_number}\b", re.MULTILINE)
+            matches = [p for p in lsts if needle.search(p.read_text())]
+            if matches:
+                lsts = matches
         self.lst_path = lsts[0] if lsts else None
 
     @property
