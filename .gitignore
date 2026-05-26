@@ -21,6 +21,7 @@ corsika-78050/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.venv/                       # Poetry in-project venv (regenerable con `make install`)
 
 # Variables de entorno (credenciales del servidor)
 .env
@@ -43,3 +44,15 @@ notebooks_resumen.html
 # Notas personales (planificación, ideas, conceptos en estudio)
 docs/personal/
 docs/paper/
+
+# Referencias bibliográficas (PDFs descargados de papers, binarios grandes)
+referencias/
+
+# Doc de planificación inicial (binario grande, raíz del repo)
+Simulación Volcánica con CORSIKA y ML.pdf
+
+# Llaves SSH públicas (no son secretas pero identifican; el privado nunca está acá)
+*.pub
+
+# Manifest viejo de timings — reemplazado por sim/runs.csv
+sim/timings.csv
