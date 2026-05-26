@@ -36,7 +36,7 @@ NSHOW        ?= 5000
 PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 
 .PHONY: help \
-	install install-no-dev poetry-shell export-requirements \
+	install install-no-dev poetry-shell export-requirements jupyter \
 	check-tarball build build-corsika build-ml build-all \
 	shell shell-corsika shell-ml \
 	verify-corsika test-corsika corsika-run \
@@ -70,6 +70,11 @@ poetry-shell:  ## Mostrar comando para activar el .venv en la shell actual
 export-requirements:  ## Regenerar docker/requirements.txt desde pyproject.toml (correr cuando cambien deps)
 	poetry export -f requirements.txt --output docker/requirements.txt --without-hashes --only main
 	@echo "docker/requirements.txt regenerado. Re-build de la imagen: make build-corsika"
+
+jupyter:  ## Lanzar JupyterLab desde el .venv. Var: ARGS="--ip=0.0.0.0 --no-browser" para acceso remoto
+	@test -x .venv/bin/jupyter || \
+		(echo "ERROR: jupyter no esta instalado. Corre 'make install' (no install-no-dev)." && exit 1)
+	.venv/bin/jupyter lab $(ARGS)
 
 # -- Docker build -------------------------------------------------------------
 
