@@ -377,3 +377,26 @@ batch-stop:  ## Detener el batch (mata tmux session 'batch'; la corrida CORSIKA 
 sim-status:  ## Mostrar tabla rich con el status del batch. Var: WATCH=1 para auto-refresh
 	@if [ "$(WATCH)" = "1" ]; then python3 scripts/sim_status.py --watch; \
 	else python3 scripts/sim_status.py; fi
+
+# -- Batch multi-volcano desde la laptop (SSH wrappers) ---------------------
+# Permiten controlar el batch sin clonar el repo en el server.
+# Requieren .env configurado (igual que el resto de server-*).
+# La maquinaria (orquestador + dashboard) corre EN el server; estos targets
+# solo le hablan via SSH.
+
+.PHONY: server-batch-deps
+server-batch-deps: check-env  ## Instalar pyyaml + rich en el server (una vez, para los scripts del batch)
+	$(SSH_CMD) "pip install --user pyyaml rich"
+
+.PHONY: server-batch-start
+server-batch-start: check-env  ## Lanzar el batch en el server desde la laptop
+	$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && make batch-start"
+
+.PHONY: server-batch-stop
+server-batch-stop: check-env  ## Detener el batch en el server desde la laptop
+	$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && make batch-stop"
+
+.PHONY: server-sim-status
+server-sim-status: check-env  ## Ver el dashboard del batch desde la laptop. Var: WATCH=1 para auto-refresh
+	@ssh -t -p $(SSH_PORT) $(SSH_KEY_FLAG) $(SERVER_USER)@$(SERVER_HOST) \
+		"cd $(SERVER_PROJECT_DIR) && make sim-status$(if $(WATCH), WATCH=$(WATCH))"
