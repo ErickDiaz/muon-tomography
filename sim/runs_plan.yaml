@@ -16,7 +16,7 @@
 
 defaults:
   detector_pos: 1
-  nshow: 1000000  
+  nshow: 1000000       # 1e6 cascades: ~2% Poisson uncertainty in the theta>70 deg bin (publication-grade)
 
 plan:
   - { volcan: fuego }
