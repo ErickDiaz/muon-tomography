@@ -1,0 +1,8 @@
+name,target_volcan,lat,lon,fuente,dist_km,notes
+Fg16,fuego,14.4550,-90.8508,Davis,3.73,INSIVUMEH-dedicated Fuego subnet; closest to crater (SE)
+Fg17 Insivumeh Finca Asuncion,fuego,14.4439,-90.9158,Davis,5.03,INSIVUMEH-dedicated; W of crater
+Fg8,fuego,14.4324,-90.9359,Davis,7.52,INSIVUMEH-dedicated; SW of crater
+Fg 12 Insivumeh,fuego,14.4333,-90.8192,Davis,7.89,INSIVUMEH-dedicated; SE of crater
+Fg16,acatenango,14.4550,-90.8508,Davis,5.79,Same Fg16 station; doubles as Acatenango candidate
+Santa Teresa,pacaya,14.4495,-90.5311,ICC,10.80,Closest to Pacaya (sparse coverage in that area)
+Saob,agua,14.5178,-90.7295,Davis,5.94,Closest to Volcan de Agua
