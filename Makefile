@@ -21,8 +21,18 @@ CORSIKA_TARBALL := corsika-$(CORSIKA_VERSION).tar.gz
 CORSIKA_IMAGE   := thesis-corsika:$(IMAGE_TAG)
 ML_IMAGE        := thesis-ml:$(IMAGE_TAG)
 
+# Run the container with the host UID/GID so files written into the
+# bind-mounted directories (sim/output, etc.) land on the host with the
+# right ownership. Default is root, which makes git pull / git add fail
+# on subsequent operations. HOME is redirected to /tmp because the
+# arbitrary UID has no entry in /etc/passwd inside the container and
+# some tools choke on a missing HOME.
+DOCKER_USER := $(shell id -u):$(shell id -g)
+
 # Bind-mounts shared by all `docker run` invocations.
 RUN_FLAGS := --rm \
+	--user $(DOCKER_USER) \
+	-e HOME=/tmp \
 	-v $(PWD)/sim:/work/sim \
 	-v $(PWD)/data:/work/data \
 	-v $(PWD)/scripts:/work/scripts
