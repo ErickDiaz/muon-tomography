@@ -14,8 +14,11 @@ Requires: pyyaml, rich.
 """
 import argparse
 import csv
+import re
+import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 try:
@@ -35,6 +38,9 @@ PLAN_FILE = REPO_ROOT / "sim" / "runs_plan.yaml"
 RUNS_CSV = REPO_ROOT / "sim" / "runs.csv"
 OUTPUT_DIR = REPO_ROOT / "sim" / "output"
 
+CORSIKA_IMAGE_PREFIX = "thesis-corsika"
+RUNNING_VOLCAN_RE = re.compile(r"/work/sim/steering/(\w+)_run\.inp")
+
 
 def load_plan() -> list[dict]:
     cfg = yaml.safe_load(PLAN_FILE.read_text())
@@ -51,6 +57,53 @@ def load_runs() -> list[dict]:
         return []
     with RUNS_CSV.open() as f:
         return list(csv.DictReader(f))
+
+
+def detect_running_run() -> dict | None:
+    """Return {'volcan': str, 'container_id': str, 'duration_sec': int|None} if
+    a thesis-corsika container is actively running a *_run.inp simulation;
+    None otherwise. Identifies the volcano by parsing the container's command
+    for the rendered steering file path."""
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "--no-trunc",
+             "--format", "{{.Image}}\t{{.Command}}\t{{.ID}}"],
+            capture_output=True, text=True, timeout=3, check=False,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return None
+
+    for line in result.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        image, command, container_id = parts[0], parts[1], parts[2]
+        if not image.startswith(CORSIKA_IMAGE_PREFIX):
+            continue
+        m = RUNNING_VOLCAN_RE.search(command)
+        if not m:
+            continue
+
+        duration_sec: int | None = None
+        try:
+            inspect = subprocess.run(
+                ["docker", "inspect", container_id,
+                 "--format", "{{.State.StartedAt}}"],
+                capture_output=True, text=True, timeout=2, check=False,
+            )
+            started_at = inspect.stdout.strip()
+            if started_at:
+                t0 = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+                duration_sec = int((datetime.now(timezone.utc) - t0).total_seconds())
+        except (subprocess.SubprocessError, ValueError, FileNotFoundError):
+            pass
+
+        return {
+            "volcan": m.group(1),
+            "container_id": container_id[:12],
+            "duration_sec": duration_sec,
+        }
+    return None
 
 
 def match_run(entry: dict, runs: list[dict]) -> dict | None:
@@ -106,6 +159,7 @@ def status_icon(status: str) -> str:
 def build_table() -> Table:
     plan = load_plan()
     runs = load_runs()
+    running = detect_running_run()
     table = Table(
         title="CORSIKA multi-volcano batch  —  sim/runs_plan.yaml",
         show_lines=False,
@@ -122,6 +176,11 @@ def build_table() -> Table:
 
     for entry in plan:
         run = match_run(entry, runs)
+        is_running = (
+            running is not None
+            and running["volcan"] == entry["volcan"]
+            and run is None
+        )
         if run:
             runnr = run["runnr"]
             row = (
@@ -133,6 +192,17 @@ def build_table() -> Table:
                 fmt_duration(run.get("duration_sec")),
                 fmt_size(dat_size(runnr)),
                 run.get("host") or "—",
+            )
+        elif is_running:
+            row = (
+                entry["volcan"],
+                f"#{running['container_id']}",
+                str(entry["nshow"]),
+                str(entry["detector_pos"]),
+                "[yellow]⏳ running[/]",
+                fmt_duration(running.get("duration_sec")),
+                "—",
+                "local",
             )
         else:
             row = (
