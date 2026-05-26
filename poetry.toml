@@ -1,0 +1,5 @@
+# Project-local Poetry config (committed). Forces the venv to live in
+# .venv/ inside the repo so it is self-contained per clone and easy to
+# delete (`rm -rf .venv`). The directory is gitignored.
+[virtualenvs]
+in-project = true

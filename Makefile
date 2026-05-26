@@ -347,6 +347,30 @@ clean-output:  ## Borrar outputs de simulaciones (CUIDADO, irreversible)
 	@read -p "Borrar sim/output/* ? [y/N] " ans; \
 	if [ "$$ans" = "y" ]; then rm -rf sim/output/*; echo "borrado"; else echo "cancelado"; fi
 
+# -- Poetry environment ------------------------------------------------------
+# Single source of truth for Python deps. The .venv lives in-project
+# (poetry.toml). The Docker image continues to install via pip; the file
+# docker/requirements.txt is regenerated from pyproject.toml by
+# `make export-requirements` and committed for reproducibility.
+
+.PHONY: install
+install:  ## Crear / sincronizar el .venv local con poetry (incluye grupos notebook + dev)
+	poetry install
+
+.PHONY: install-no-dev
+install-no-dev:  ## Solo deps de produccion (sin pytest ni jupyter): util para CI o server
+	poetry install --without dev,notebook
+
+.PHONY: poetry-shell
+poetry-shell:  ## Mostrar comando para activar el .venv en la shell actual
+	@echo "Para activar:  source .venv/bin/activate"
+	@echo "Para desactivar:  deactivate"
+
+.PHONY: export-requirements
+export-requirements:  ## Regenerar docker/requirements.txt desde pyproject.toml (correr cuando cambien deps)
+	poetry export -f requirements.txt --output docker/requirements.txt --without-hashes --only main
+	@echo "docker/requirements.txt regenerado. Re-build de la imagen: make build-corsika"
+
 # -- Batch multi-volcano ----------------------------------------------------
 # Lee sim/runs_plan.yaml y ejecuta cada corrida secuencialmente reusando
 # `make corsika-run`. Diseñado para correr EN EL SERVIDOR bajo tmux.
@@ -385,8 +409,8 @@ sim-status:  ## Mostrar tabla rich con el status del batch. Var: WATCH=1 para au
 # solo le hablan via SSH.
 
 .PHONY: server-batch-deps
-server-batch-deps: check-env  ## Instalar pyyaml + rich en el server (una vez, para los scripts del batch)
-	$(SSH_CMD) "pip install --user pyyaml rich"
+server-batch-deps: check-env  ## Instalar poetry y dependencias Python en el server (una vez por clone)
+	$(SSH_CMD) "cd $(SERVER_PROJECT_DIR) && (command -v poetry >/dev/null || python3 -m pip install --user poetry) && poetry install --without dev,notebook"
 
 .PHONY: server-batch-start
 server-batch-start: check-env  ## Lanzar el batch en el server desde la laptop

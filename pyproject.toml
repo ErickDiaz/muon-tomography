@@ -1,0 +1,60 @@
+[tool.poetry]
+name = "muon-tomography"
+version = "0.1.0"
+description = "Cosmic-ray muography of Guatemalan volcanoes — CORSIKA simulation + ML pipeline"
+authors = ["Erick Diaz <ewdiazsa@gmail.com>"]
+readme = "README.md"
+# Not an installable package — we use this only to lock the environment.
+# The repo's Python modules live in analysis/ and are imported by path (see
+# the REPO_ROOT prelude in notebooks/*.ipynb).
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+# CORSIKA output parsing
+# Pin flojo: corsikaio sigue emitiendo UnknownNewCORSIKA con MAX_VERSION=7.801
+# incluso en 0.6.x; ya validamos empíricamente que los offsets son correctos.
+# El upper bound <0.6 evita choque con Python 3.10 de la imagen Docker.
+corsikaio = ">=0.5,<0.6"
+corsika-panama = ">=0.6"
+
+# Numerical & data
+numpy = ">=1.24"
+scipy = ">=1.11"
+pandas = ">=2.0"
+pyarrow = ">=14.0"           # Parquet (dataset ML Fase 3)
+h5py = ">=3.10"              # almacenamiento intermedio de muogramas
+
+# Visualization
+matplotlib = ">=3.7"
+seaborn = ">=0.13"
+
+# Geospatial (DEMs, ray-tracing topográfico)
+rasterio = ">=1.3"
+shapely = ">=2.0"
+pyproj = ">=3.6"
+
+# Atmospheric (ERA5)
+xarray = ">=2024.1"
+netCDF4 = ">=1.6"
+cdsapi = ">=0.7"             # cliente CDS Copernicus para descargar ERA5
+
+# Utilities & batch orchestration
+tqdm = ">=4.66"
+click = ">=8.1"
+pyyaml = ">=6.0"
+rich = ">=13.0"              # tablas coloreadas para scripts/sim_status.py
+
+[tool.poetry.group.notebook.dependencies]
+# Para correr Jupyter en el host, con kernel apuntando a este venv.
+jupyterlab = ">=4.0"
+ipykernel = ">=6.27"
+ipywidgets = ">=8.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
