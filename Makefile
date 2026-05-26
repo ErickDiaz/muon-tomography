@@ -346,3 +346,34 @@ clean:  ## Borrar imagenes locales
 clean-output:  ## Borrar outputs de simulaciones (CUIDADO, irreversible)
 	@read -p "Borrar sim/output/* ? [y/N] " ans; \
 	if [ "$$ans" = "y" ]; then rm -rf sim/output/*; echo "borrado"; else echo "cancelado"; fi
+
+# -- Batch multi-volcano ----------------------------------------------------
+# Lee sim/runs_plan.yaml y ejecuta cada corrida secuencialmente reusando
+# `make corsika-run`. Diseñado para correr EN EL SERVIDOR bajo tmux.
+
+.PHONY: batch-start
+batch-start:  ## Lanzar el batch de sim/runs_plan.yaml en tmux session 'batch' (server-side)
+	@command -v tmux >/dev/null || (echo "ERROR: tmux no esta instalado" && exit 1)
+	@command -v python3 >/dev/null || (echo "ERROR: python3 no esta instalado" && exit 1)
+	@if tmux has-session -t batch 2>/dev/null; then \
+		echo "tmux session 'batch' ya esta corriendo."; \
+		echo "  ver progreso:   make sim-status"; \
+		echo "  attach:         tmux attach -t batch (Ctrl+B D para detach)"; \
+		echo "  detener:        make batch-stop"; \
+		exit 1; \
+	fi
+	@mkdir -p logs
+	tmux new-session -d -s batch \
+		"python3 scripts/run_batch.py 2>&1 | tee -a logs/batch_$$(date +%Y%m%d_%H%M%S).log"
+	@echo "Batch lanzado en tmux session 'batch'."
+	@echo "  ver progreso:   make sim-status   (o make sim-status WATCH=1 para auto-refresh)"
+	@echo "  attach:         tmux attach -t batch"
+
+.PHONY: batch-stop
+batch-stop:  ## Detener el batch (mata tmux session 'batch'; la corrida CORSIKA en curso continua hasta terminar)
+	@tmux kill-session -t batch 2>/dev/null && echo "Session 'batch' detenida." || echo "No hay session 'batch' corriendo."
+
+.PHONY: sim-status
+sim-status:  ## Mostrar tabla rich con el status del batch. Var: WATCH=1 para auto-refresh
+	@if [ "$(WATCH)" = "1" ]; then python3 scripts/sim_status.py --watch; \
+	else python3 scripts/sim_status.py; fi

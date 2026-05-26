@@ -36,6 +36,7 @@ cdsapi>=0.7         # cliente CDS Copernicus para descargar ERA5
 tqdm>=4.66
 click>=8.1
 pyyaml>=6.0
+rich>=13.0          # tablas coloreadas en terminal para scripts/sim_status.py
 
 # Tests (analysis/)
 pytest>=8.0
