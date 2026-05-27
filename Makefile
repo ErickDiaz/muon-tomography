@@ -54,7 +54,7 @@ PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 	runs backfill-runs \
 	download-dem \
 	test export-notebooks-pdf \
-	clean clean-output
+	clean clean-output clean-runs
 
 help:  ## Mostrar esta ayuda
 	@echo "Targets disponibles:"
@@ -219,6 +219,20 @@ export-notebooks-pdf:  ## Exportar markdown de todos los notebooks a notebooks_r
 clean:  ## Borrar imagenes Docker locales
 	-docker rmi $(CORSIKA_IMAGE) $(ML_IMAGE) 2>/dev/null
 
-clean-output:  ## Borrar outputs de simulaciones (CUIDADO, irreversible)
+clean-output:  ## Borrar solo los DATs/.lst en sim/output/ (mantiene runs.csv, logs/, steering)
 	@read -p "Borrar sim/output/* ? [y/N] " ans; \
 	if [ "$$ans" = "y" ]; then rm -rf sim/output/*; echo "borrado"; else echo "cancelado"; fi
+
+.PHONY: clean-runs
+clean-runs:  ## Borrar TODO el historial de simulaciones: sim/output/, sim/runs.csv, logs/, *_run.inp
+	@echo "Esto borrara:"
+	@echo "  - sim/output/* (todos los DAT + .lst de simulaciones)"
+	@echo "  - sim/runs.csv (manifest de corridas)"
+	@echo "  - logs/      (logs persistentes de batch + steering snapshots + .lst archived)"
+	@echo "  - sim/steering/*_run.inp (steering files generados por corsika-run)"
+	@read -p "Borrar todo lo anterior? [y/N] " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf sim/output/* logs/ sim/runs.csv; \
+		rm -f sim/steering/*_run.inp; \
+		echo "Limpieza completa. Estado: borron y cuenta nueva."; \
+	else echo "cancelado"; fi

@@ -18,8 +18,23 @@ defaults:
   detector_pos: 1
   nshow: 1000000       # 1e6 cascades: ~2% Poisson uncertainty in the theta>70 deg bin (publication-grade)
 
+# Explicit list of (volcan, nshow, detector_pos) tuples to run.
+# Each entry inherits defaults via setdefault; per-entry keys override.
 plan:
   - { volcan: fuego }
   - { volcan: acatenango }
   - { volcan: pacaya }
   - { volcan: agua }
+
+# Optional: sweeps. Each block expands to len(nshow_list) plan entries
+# sharing the same base. Useful for convergence studies (one volcano at
+# many NSHOW values) without writing each line by hand. Example:
+#
+# sweeps:
+#   - volcan: fuego
+#     nshow_list: [500, 1000, 10000, 100000, 1000000]
+#   - volcan: acatenango
+#     nshow_list: [100000, 1000000]
+#
+# The orchestrator skips runs already in sim/runs.csv with status=ok, so
+# re-running a partially completed sweep is safe.

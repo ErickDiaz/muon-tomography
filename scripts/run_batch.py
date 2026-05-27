@@ -22,10 +22,11 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
-    import yaml
+    from _plan_loader import load_plan as _load_plan_from_file
 except ImportError:
-    sys.exit("ERROR: install pyyaml first (`pip install pyyaml`)")
+    sys.exit("ERROR: missing scripts/_plan_loader.py (pyyaml required)")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PLAN_FILE = REPO_ROOT / "sim" / "runs_plan.yaml"
@@ -34,13 +35,7 @@ STATUS_FILE = REPO_ROOT / "logs" / "batch_status.json"
 
 
 def load_plan() -> list[dict]:
-    cfg = yaml.safe_load(PLAN_FILE.read_text())
-    defaults = cfg.get("defaults", {}) or {}
-    plan = cfg["plan"]
-    for entry in plan:
-        for k, v in defaults.items():
-            entry.setdefault(k, v)
-    return plan
+    return _load_plan_from_file(PLAN_FILE)
 
 
 def already_done(entry: dict) -> str | None:
