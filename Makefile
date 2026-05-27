@@ -219,18 +219,25 @@ export-notebooks-pdf:  ## Exportar markdown de todos los notebooks a notebooks_r
 clean:  ## Borrar imagenes Docker locales
 	-docker rmi $(CORSIKA_IMAGE) $(ML_IMAGE) 2>/dev/null
 
-clean-output:  ## Borrar solo los DATs/.lst en sim/output/ (mantiene runs.csv, logs/, steering)
-	@read -p "Borrar sim/output/* ? [y/N] " ans; \
-	if [ "$$ans" = "y" ]; then rm -rf sim/output/*; echo "borrado"; else echo "cancelado"; fi
+clean-output:  ## Liberar disco: borra sim/output/* + sim/runs.csv (mantiene logs/ y steering generados)
+	@echo "Esto borrara:"
+	@echo "  - sim/output/* (todos los DAT + .lst de simulaciones, GBs)"
+	@echo "  - sim/runs.csv (manifest — inconsistente sin los DATs)"
+	@echo "Se mantienen logs/ y sim/steering/*_run.inp (peso despreciable)."
+	@read -p "Borrar lo anterior? [y/N] " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf sim/output/* sim/runs.csv; \
+		echo "Liberado. Logs/ y steering generados se conservan."; \
+	else echo "cancelado"; fi
 
 .PHONY: clean-runs
-clean-runs:  ## Borrar TODO el historial de simulaciones: sim/output/, sim/runs.csv, logs/, *_run.inp
+clean-runs:  ## Borron total: clean-output + logs/ + sim/steering/*_run.inp
 	@echo "Esto borrara:"
-	@echo "  - sim/output/* (todos los DAT + .lst de simulaciones)"
-	@echo "  - sim/runs.csv (manifest de corridas)"
-	@echo "  - logs/      (logs persistentes de batch + steering snapshots + .lst archived)"
-	@echo "  - sim/steering/*_run.inp (steering files generados por corsika-run)"
-	@read -p "Borrar todo lo anterior? [y/N] " ans; \
+	@echo "  - sim/output/*           (DATs + .lst)"
+	@echo "  - sim/runs.csv           (manifest)"
+	@echo "  - logs/                  (batch logs + .lst archivados + steering snapshots)"
+	@echo "  - sim/steering/*_run.inp (steering generados por corsika-run)"
+	@read -p "Borrar TODO lo anterior? [y/N] " ans; \
 	if [ "$$ans" = "y" ]; then \
 		rm -rf sim/output/* logs/ sim/runs.csv; \
 		rm -f sim/steering/*_run.inp; \
