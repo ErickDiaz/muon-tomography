@@ -41,7 +41,22 @@ OUTPUT_DIR = REPO_ROOT / "sim" / "output"
 
 CORSIKA_IMAGE_PREFIX = "thesis-corsika"
 RUNNING_VOLCAN_RE = re.compile(r"/work/sim/steering/(\w+)_run\.inp")
+NSHOW_LINE_RE = re.compile(r"^\s*NSHOW\s+(\d+)", re.IGNORECASE | re.MULTILINE)
 BATCH_TMUX_SESSION = "batch"
+
+
+def nshow_of_active_run(volcan: str) -> int | None:
+    """Read sim/steering/<volcan>_run.inp (the steering file rendered by
+    `make corsika-run` for the active run) and extract NSHOW. Returns None
+    if the file does not exist or NSHOW cannot be parsed."""
+    steering = REPO_ROOT / "sim" / "steering" / f"{volcan}_run.inp"
+    if not steering.exists():
+        return None
+    try:
+        m = NSHOW_LINE_RE.search(steering.read_text())
+        return int(m.group(1)) if m else None
+    except (OSError, ValueError):
+        return None
 
 
 def load_plan() -> list[dict]:
@@ -94,10 +109,12 @@ def detect_running_run() -> dict | None:
         except (subprocess.SubprocessError, ValueError, FileNotFoundError):
             pass
 
+        volcan = m.group(1)
         return {
-            "volcan": m.group(1),
+            "volcan": volcan,
             "container_id": container_id[:12],
             "duration_sec": duration_sec,
+            "nshow": nshow_of_active_run(volcan),
         }
     return None
 
@@ -194,10 +211,16 @@ def build_table() -> Table:
 
     for entry in plan:
         run = match_run(entry, runs)
+        # Match the live container to a single plan entry: same volcano AND
+        # same NSHOW as written in the rendered steering file. If the NSHOW
+        # could not be read (running['nshow'] is None) fall back to old
+        # behaviour and match by volcano only — better than marking nothing.
         is_running = (
             running is not None
             and running["volcan"] == entry["volcan"]
             and run is None
+            and (running.get("nshow") is None
+                 or int(running["nshow"]) == int(entry["nshow"]))
         )
         if run:
             runnr = run["runnr"]
