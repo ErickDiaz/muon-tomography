@@ -46,7 +46,7 @@ NSHOW        ?= 5000
 PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 
 .PHONY: help \
-	install install-no-dev poetry-shell export-requirements jupyter \
+	install install-no-dev poetry-shell export-requirements jupyter jupyter-stop \
 	check-tarball build build-corsika build-ml build-all \
 	shell shell-corsika shell-ml \
 	verify-corsika test-corsika corsika-run \
@@ -85,6 +85,9 @@ jupyter:  ## Lanzar JupyterLab desde el .venv. Var: ARGS="--ip=0.0.0.0 --no-brow
 	@test -x .venv/bin/jupyter || \
 		(echo "ERROR: jupyter no esta instalado. Corre 'make install' (no install-no-dev)." && exit 1)
 	.venv/bin/jupyter lab $(ARGS)
+
+jupyter-stop:  ## Matar el proceso jupyter-lab si quedo vivo (util tras perdida de SSH)
+	@pkill -f ".venv/bin/jupyter-lab" && echo "Jupyter detenido." || echo "No hay jupyter-lab corriendo."
 
 # -- Docker build -------------------------------------------------------------
 
