@@ -56,3 +56,7 @@ Simulación Volcánica con CORSIKA y ML.pdf
 
 # Manifest viejo de timings — reemplazado por sim/runs.csv
 sim/timings.csv
+
+# Plan de batch personal (cada usuario el suyo). El template versionado
+# es sim/runs_plan.example.yaml; copialo como sim/runs_plan.yaml y editalo.
+sim/runs_plan.yaml

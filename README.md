@@ -74,7 +74,14 @@ Available volcanoes: `fuego`, `acatenango`, `pacaya`, `agua`.
 
 ### Batch (multi-volcano)
 
-Edit `sim/runs_plan.yaml` to declare the runs to execute, then:
+The plan is personal (gitignored). Copy the template once, edit, then run:
+
+```bash
+cp sim/runs_plan.example.yaml sim/runs_plan.yaml
+$EDITOR sim/runs_plan.yaml
+```
+
+Then:
 
 ```bash
 make batch-start           # runs the plan sequentially in a detached tmux session
@@ -138,7 +145,8 @@ muon-tomography/
 ├── sim/
 │   ├── steering/       Parametric CORSIKA steering templates (one per volcano)
 │   ├── runs.csv        Manifest of completed runs (host, duration, paths, status)
-│   ├── runs_plan.yaml  Batch plan consumed by run_batch.py
+│   ├── runs_plan.example.yaml  Template for the batch plan (versioned)
+│   ├── runs_plan.yaml  Personal batch plan (gitignored, copy from example)
 │   └── output/         CORSIKA DAT + .lst files (gitignored, can reach tens of GB)
 ├── tests/              Pytest suite for analysis/
 ├── Makefile            Single source of commands; run `make help`

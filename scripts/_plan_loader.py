@@ -32,6 +32,17 @@ import yaml
 
 
 def load_plan(plan_file: Path) -> list[dict]:
+    if not plan_file.exists():
+        example = plan_file.with_suffix(".example.yaml")
+        msg = f"ERROR: missing {plan_file}"
+        if example.exists():
+            msg += (
+                f"\n  Copia el template para empezar:"
+                f"\n    cp {example} {plan_file}"
+                f"\n  Despues editalo a gusto (es personal, ya esta en .gitignore)."
+            )
+        raise FileNotFoundError(msg)
+
     cfg = yaml.safe_load(plan_file.read_text())
     defaults = cfg.get("defaults") or {}
 
