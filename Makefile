@@ -46,7 +46,7 @@ NSHOW        ?= 5000
 PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 
 .PHONY: help \
-	install install-no-dev poetry-shell export-requirements jupyter jupyter-stop \
+	install install-no-dev poetry-shell export-requirements jupyter jupyter-detached jupyter-stop \
 	check-tarball build build-corsika build-ml build-all \
 	shell shell-corsika shell-ml \
 	verify-corsika test-corsika corsika-run \
@@ -81,13 +81,36 @@ export-requirements:  ## Regenerar docker/requirements.txt desde pyproject.toml 
 	poetry export -f requirements.txt --output docker/requirements.txt --without-hashes --only main
 	@echo "docker/requirements.txt regenerado. Re-build de la imagen: make build-corsika"
 
-jupyter:  ## Lanzar JupyterLab desde el .venv. Var: ARGS="--ip=0.0.0.0 --no-browser" para acceso remoto
+jupyter:  ## Lanzar JupyterLab en foreground. Var: ARGS="--ip=0.0.0.0 --no-browser" para acceso remoto
 	@test -x .venv/bin/jupyter || \
 		(echo "ERROR: jupyter no esta instalado. Corre 'make install' (no install-no-dev)." && exit 1)
 	.venv/bin/jupyter lab $(ARGS)
 
-jupyter-stop:  ## Matar el proceso jupyter-lab si quedo vivo (util tras perdida de SSH)
-	@pkill -f ".venv/bin/jupyter-lab" && echo "Jupyter detenido." || echo "No hay jupyter-lab corriendo."
+jupyter-detached:  ## Lanzar JupyterLab en tmux 'jupyter' (sobrevive SSH disconnects). Defaults: --ip=0.0.0.0 --no-browser
+	@command -v tmux >/dev/null || (echo "ERROR: tmux no esta instalado" && exit 1)
+	@test -x .venv/bin/jupyter || \
+		(echo "ERROR: jupyter no esta instalado. Corre 'make install' (no install-no-dev)." && exit 1)
+	@if tmux has-session -t jupyter 2>/dev/null; then \
+		echo "tmux session 'jupyter' ya esta corriendo."; \
+		echo "  ver token:  tmux attach -t jupyter   (Ctrl+B D detach)"; \
+		echo "  detener:    make jupyter-stop"; \
+		exit 1; \
+	fi
+	tmux new-session -d -s jupyter "cd $(PWD) && .venv/bin/jupyter lab $(if $(ARGS),$(ARGS),--ip=0.0.0.0 --no-browser)"
+	@echo "JupyterLab corriendo en tmux session 'jupyter' (sobrevive SSH disconnects)."
+	@echo "  ver token:  tmux attach -t jupyter   (Ctrl+B D detach)"
+	@echo "  detener:    make jupyter-stop"
+
+jupyter-stop:  ## Matar jupyter (foreground o dentro de tmux 'jupyter')
+	@if tmux has-session -t jupyter 2>/dev/null; then \
+		tmux kill-session -t jupyter; \
+		echo "tmux session 'jupyter' (y jupyter-lab adentro) detenida."; \
+	elif pgrep -f ".venv/bin/jupyter-lab" >/dev/null 2>&1; then \
+		pkill -f ".venv/bin/jupyter-lab"; \
+		echo "Proceso jupyter-lab detenido."; \
+	else \
+		echo "Nada que detener."; \
+	fi
 
 # -- Docker build -------------------------------------------------------------
 
