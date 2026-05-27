@@ -41,6 +41,7 @@ OUTPUT_DIR = REPO_ROOT / "sim" / "output"
 
 CORSIKA_IMAGE_PREFIX = "thesis-corsika"
 RUNNING_VOLCAN_RE = re.compile(r"/work/sim/steering/(\w+)_run\.inp")
+BATCH_TMUX_SESSION = "batch"
 
 
 def load_plan() -> list[dict]:
@@ -101,6 +102,18 @@ def detect_running_run() -> dict | None:
     return None
 
 
+def is_batch_active() -> bool:
+    """True if the tmux session that holds the batch orchestrator exists."""
+    try:
+        result = subprocess.run(
+            ["tmux", "has-session", "-t", BATCH_TMUX_SESSION],
+            capture_output=True, timeout=2, check=False,
+        )
+        return result.returncode == 0
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return False
+
+
 def match_run(entry: dict, runs: list[dict]) -> dict | None:
     matches = [
         r for r in runs
@@ -155,8 +168,18 @@ def build_table() -> Table:
     plan = load_plan()
     runs = load_runs()
     running = detect_running_run()
+    batch_active = is_batch_active()
+
+    if batch_active:
+        caption = "[green]Batch tmux: active[/]   (use `make sim-status WATCH=1` for live view)"
+        idle_status = "[yellow]⏸ queued[/]"
+    else:
+        caption = "[dim]Batch tmux: not running[/]   →  run `make batch-start` to start"
+        idle_status = "[dim]○ planned[/]"
+
     table = Table(
         title="CORSIKA multi-volcano batch  —  sim/runs_plan.yaml",
+        caption=caption,
         show_lines=False,
         title_style="bold",
     )
@@ -205,7 +228,7 @@ def build_table() -> Table:
                 "—",
                 str(entry["nshow"]),
                 str(entry["detector_pos"]),
-                "[dim]⏸ queued[/]",
+                idle_status,
                 "—", "—", "—",
             )
         table.add_row(*row)
