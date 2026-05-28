@@ -296,3 +296,117 @@ def transmission_map(
     N_open = integrated_flux_above(np.full_like(opacity_gcm2, p_threshold_gevc), theta_grid)
     # Donde el flujo abierto es 0 (theta cerca de 90°, no fisico aqui), evitar /0.
     return np.where(N_open > 0, N_with / N_open, 0.0)
+
+
+def mc_transmission_map(
+    opacity_gcm2: np.ndarray,
+    theta_rad: np.ndarray,
+    muons_df,
+    theta_bin_width_deg: float = 5.0,
+    min_per_bin: int = 50,
+) -> np.ndarray:
+    """Transmission map T(θ,φ) built from a CORSIKA MC muon sample.
+
+    Same observable as `transmission_map()` but uses the empirical momentum
+    distribution per zenith bin of a CORSIKA simulation instead of the
+    Reyna analytical parametrization. Useful to quantify the bias of the
+    Reyna approximation: T_mc − T_reyna isolates the systematic
+    introduced by the choice of analytical flux model.
+
+    Algorithm: bin the MC muons by zenith angle (azimuthally averaged —
+    the cosmic-ray flux is azimuthally isotropic at first order; angular
+    structure of the muograma comes from topography, not from anisotropic
+    flux). For each (θ, φ) pixel, count the fraction of muons in the
+    matching θ bin with momentum > E_min(L).
+
+    Args:
+        opacity_gcm2: (Nθ, Nφ) opacity grid in g/cm².
+        theta_rad: (Nθ,) zenith grid in radians.
+        muons_df: pandas.DataFrame with the CORSIKA muon table. Must
+            expose either (px, py, pz) momentum components in GeV/c, or
+            pre-computed (p_gevc, theta_deg) columns.
+        theta_bin_width_deg: angular bin width for sampling the MC
+            momentum spectrum. Smaller bins = finer angular resolution
+            but worse per-bin statistics.
+        min_per_bin: minimum number of MC muons in a θ bin to consider
+            it valid. Bins with fewer are returned as NaN.
+
+    Returns:
+        T_mc: (Nθ, Nφ) transmission map. NaN where MC stats insufficient.
+    """
+    df = muons_df
+    if "p_gevc" not in df.columns:
+        df = df.assign(p_gevc=np.sqrt(df["px"] ** 2 + df["py"] ** 2 + df["pz"] ** 2))
+    if "theta_deg" not in df.columns:
+        # CORSIKA stores pz with a sign convention that varies by version;
+        # |pz|/|p| gives cos(zenith) robustly for downgoing muons.
+        df = df.assign(
+            theta_deg=np.degrees(np.arccos(np.abs(df["pz"]) / df["p_gevc"]))
+        )
+
+    theta_deg_grid = np.degrees(theta_rad)
+    theta_min = float(theta_deg_grid.min())
+    theta_max = float(theta_deg_grid.max())
+    bin_edges = np.arange(
+        theta_min, theta_max + theta_bin_width_deg, theta_bin_width_deg
+    )
+    n_bins = len(bin_edges) - 1
+
+    E_min_grid = csda_min_momentum(opacity_gcm2)  # GeV per pixel
+
+    T_mc = np.full_like(opacity_gcm2, np.nan, dtype=float)
+    df_theta = df["theta_deg"].values
+    df_p = df["p_gevc"].values
+    for bi in range(n_bins):
+        in_bin = (df_theta >= bin_edges[bi]) & (df_theta < bin_edges[bi + 1])
+        ps = np.sort(df_p[in_bin])
+        if len(ps) < min_per_bin:
+            continue
+        rows = (theta_deg_grid >= bin_edges[bi]) & (theta_deg_grid < bin_edges[bi + 1])
+        if not rows.any():
+            continue
+        E_sub = E_min_grid[rows, :]
+        # For each E_min value, count muons with p > E_min via searchsorted.
+        n_below = np.searchsorted(ps, E_sub, side="right")
+        T_mc[rows, :] = (len(ps) - n_below) / len(ps)
+    return T_mc
+
+
+def muograma_information(
+    transmission: np.ndarray,
+    opacity_gcm2: np.ndarray,
+    mode: str = "variance_volcano",
+) -> float:
+    """Scalar 'information' metric for a muograma — used to score detector
+    positions during placement optimization.
+
+    A position is 'better' when its muograma has more contrast over the
+    pixels where the volcano blocks (or partially blocks) muons; flat
+    muograms (everything open sky or everything blocked) carry no
+    tomographic information.
+
+    Args:
+        transmission: (Nθ, Nφ) transmission map T(θ, φ) ∈ [0, 1].
+        opacity_gcm2: (Nθ, Nφ) opacity map — pixels with L > 0 are
+            considered "volcano pixels" (the FoV that the edifice
+            occupies).
+        mode:
+            'variance_volcano'  std of T over volcano pixels (default).
+            'fraction_blocked'  fraction of volcano pixels with T < 0.5.
+            'mean_deviation'    mean |T − 0.5| over volcano pixels.
+
+    Returns:
+        Scalar; higher = more discriminating muograma. Returns 0.0 if
+        no volcano pixels are present at this detector position.
+    """
+    in_volcano = opacity_gcm2 > 0
+    if not in_volcano.any():
+        return 0.0
+    t_vol = transmission[in_volcano]
+    if mode == "variance_volcano":
+        return float(np.std(t_vol))
+    if mode == "fraction_blocked":
+        return float((t_vol < 0.5).mean())
+    if mode == "mean_deviation":
+        return float(np.abs(t_vol - 0.5).mean())
+    raise ValueError(f"unknown mode: {mode!r}")
