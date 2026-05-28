@@ -1,0 +1,33 @@
+code,volcano,ubicacion,departamento,lat,lon,d_fuego,d_acatenango,d_pacaya,d_agua
+AT0,atitlan,Santa Barbara Volcan Atitlan,Suchitepequez,14.5479256,-91.193641,34.776,34.587,66.486,49.359
+FG0,fuego,Finca Palo Verde,Chimaltenango,14.436681,-90.971512,10.649,12.526,40.398,24.82
+FG12,fuego,La Reunion,Sacatepequez,14.436506,-90.836061,6.233,8.362,26.084,10.544
+FG13,fuego,El Toledo,Escuintla,14.406772,-90.818594,9.897,12.165,23.624,10.471
+FG14,fuego,Siquinala,Escuintla,14.39081,-90.9422,11.331,14.175,36.77,23.023
+FG15,fuego,Siquinala,Escuintla,14.390869,-90.942139,11.322,14.166,36.763,23.015
+FG16,fuego,Finca Candelaria,Sacatepequez,14.455036,-90.850824,3.723,5.785,28.168,11.673
+FG17,fuego,Finca Asuncion,Escuintla,14.426751,-90.926201,7.155,9.868,35.408,20.204
+FG3,fuego,Finca Candelaria,Sacatepequez,14.4366,-90.8358,6.248,8.367,26.059,10.514
+FG8,fuego,Panimache,Chimaltenango,14.4325,-90.9354,7.474,9.946,36.484,21.049
+PCG,pacaya,Cerro Chino,Escuintla,14.3925,-90.6087,30.556,31.209,1.619,16.612
+PCG2,pacaya,Repetidora Emisoras Unidas,Escuintla,14.376623,-90.631834,28.793,29.708,3.342,15.559
+PCG4,pacaya,Finca el Amate-Villa Canales,Guatemala,14.3418,-90.601,33.402,34.502,4.248,20.606
+PCG5,pacaya,Finca Piedras Negras,Escuintla,14.36036,-90.627702,29.919,30.976,3.611,17.093
+PCG6,pacaya,Finca El Muneco-Villa Canales,Guatemala,14.366157,-90.577754,34.65,35.444,2.939,20.975
+SAOB,agua,San Juan del Obispo,Sacatepequez,14.5171304,-90.7333138,16.536,15.464,20.868,5.78
+STG1,santiaguito,Finca Parador los Trece,Quetzaltenango,14.7749058,-91.5887043,83.314,82.504,115.005,97.26
+STG10,santiaguito,Finca el Faro,Quetzaltenango,14.715898,-91.57517,79.532,78.935,111.303,93.761
+STG11,santiaguito,El Tambor,Retalhuleu,14.647463,-91.611425,81.074,80.802,112.761,95.618
+STG12,santiaguito,Finca Montebello Hidroelectrica,Quetzaltenango,14.727204,-91.599962,82.466,81.857,114.237,96.68
+STG13,santiaguito,Volcan Santiaguito,Quetzaltenango,14.726767,-91.592637,81.71,81.092,113.479,95.914
+STG14,santiaguito,Finca Las Majadas,Quetzaltenango,14.760953,-91.523968,76.329,75.469,107.984,90.204
+STG2,santiaguito,Loma Linda,Quetzaltenango,14.7281,-91.6257,85.107,84.526,116.88,99.354
+STG3,santiaguito,Finca el Faro,Quetzaltenango,14.7109,-91.5702,78.841,78.258,110.615,93.087
+STG4,santiaguito,El Patrocinio,Quetzaltenango,14.6607172,-91.6069778,80.974,80.643,112.696,95.471
+STG5,santiaguito,Finca Patzulin,Quetzaltenango,14.672361,-91.580611,78.589,78.181,110.343,93.018
+STG6,santiaguito,Finca Pauwlonias,Quetzaltenango,14.688765,-91.60617,81.746,81.298,113.509,96.136
+STG7,santiaguito,Cerro Siete Orejas,Quetzaltenango,14.7912827,-91.5886144,84.053,83.182,115.7,97.906
+STG8,santiaguito,Domos de Santiguiato,Quetzaltenango,14.750389,-91.585083,81.896,81.175,113.634,95.968
+STG9,santiaguito,Finca Patzulin,Quetzaltenango,14.706044,-91.559275,77.554,76.976,109.327,91.806
+STPJ,unknown,Palajunoj,Retalhuleu,14.688733,-91.618669,83.032,82.598,114.791,97.436
+TC0,tacana,Sibinal Volcan Tacana,San Marcos,15.132744,-92.063795,146.892,145.732,178.173,160.182
