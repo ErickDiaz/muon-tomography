@@ -1,0 +1,66 @@
+# Canonical parameters for the four target volcanoes of this project.
+# Read by notebooks 04 / 05 / 07 to dispatch the muography pipeline per
+# volcano without hardcoding cone/summit/density values inside each cell.
+#
+# Fields:
+#   lat, lon          : catalogued crater coordinates (WGS84, decimal degrees)
+#   summit_m          : catalogued summit elevation (m a.s.l.). The DEM
+#                       may report a slightly different value (~10-30 m
+#                       off) because of eruptive deposits and 30 m
+#                       resolution. The simulation uses the DEM value
+#                       via terrain.summit_elevation.
+#   cone:
+#     base_m          : elevation of the base of the synthetic cone
+#                       (control case for NB 04 and the "cono" panel of
+#                       NB 05's residual analysis). Picked to match the
+#                       local valley floor.
+#     base_radius_m   : horizontal radius of the synthetic cone at base.
+#     density_gcc     : rock density used in ray tracing. We keep
+#                       2.65 g/cc (standard rock per Groom 2001) for all
+#                       four volcanoes for consistency with the
+#                       simulation chain; petrological variations
+#                       (basalt vs andesite) are second-order systematics
+#                       captured in the Discussion of the paper.
+#   default_station   : RSN station code used by default when notebooks
+#                       are run without overriding STATION_NAME. Matches
+#                       data/detector_sites.csv.
+
+fuego:
+  lat: 14.473
+  lon: -90.880
+  summit_m: 3763
+  cone:
+    base_m: 2500
+    base_radius_m: 1500
+    density_gcc: 2.65
+  default_station: FG16
+
+acatenango:
+  lat: 14.501
+  lon: -90.876
+  summit_m: 3976
+  cone:
+    base_m: 2500
+    base_radius_m: 1800
+    density_gcc: 2.65
+  default_station: FG16     # shared with Fuego; no RSN station dedicated to Acatenango
+
+pacaya:
+  lat: 14.380
+  lon: -90.601
+  summit_m: 2552
+  cone:
+    base_m: 1500
+    base_radius_m: 1200
+    density_gcc: 2.65
+  default_station: PCG      # Cerro Chino — on the Pacaya flank, 1.6 km from crater
+
+agua:
+  lat: 14.466
+  lon: -90.743
+  summit_m: 3760
+  cone:
+    base_m: 1500
+    base_radius_m: 2000
+    density_gcc: 2.65
+  default_station: SAOB     # San Juan del Obispo — only RSN station near Agua

@@ -1,8 +1,15 @@
 name,target_volcan,lat,lon,fuente,dist_km,notes
-Fg16,fuego,14.4550,-90.8508,Davis,3.73,INSIVUMEH-dedicated Fuego subnet; closest to crater (SE)
-Fg17 Insivumeh Finca Asuncion,fuego,14.4439,-90.9158,Davis,5.03,INSIVUMEH-dedicated; W of crater
-Fg8,fuego,14.4324,-90.9359,Davis,7.52,INSIVUMEH-dedicated; SW of crater
-Fg 12 Insivumeh,fuego,14.4333,-90.8192,Davis,7.89,INSIVUMEH-dedicated; SE of crater
-Fg16,acatenango,14.4550,-90.8508,Davis,5.79,Same Fg16 station; doubles as Acatenango candidate
-Santa Teresa,pacaya,14.4495,-90.5311,ICC,10.80,Closest to Pacaya (sparse coverage in that area)
-Saob,agua,14.5178,-90.7295,Davis,5.94,Closest to Volcan de Agua
+FG16,fuego,14.455036,-90.850824,INSIVUMEH-RSN,3.72,Finca Candelaria - closest to Fuego crater (SE)
+FG12,fuego,14.436506,-90.836061,INSIVUMEH-RSN,6.23,La Reunion - SE of Fuego
+FG3,fuego,14.436600,-90.835800,INSIVUMEH-RSN,6.25,Finca Candelaria - co-located near FG12
+FG17,fuego,14.426751,-90.926201,INSIVUMEH-RSN,7.16,Finca Asuncion - W of Fuego
+FG8,fuego,14.432500,-90.935400,INSIVUMEH-RSN,7.47,Panimache - W of Fuego
+FG16,acatenango,14.455036,-90.850824,INSIVUMEH-RSN,5.79,Same FG16; doubles as Acatenango candidate (shared subnet)
+FG12,acatenango,14.436506,-90.836061,INSIVUMEH-RSN,8.36,La Reunion - serves Acatenango too
+FG17,acatenango,14.426751,-90.926201,INSIVUMEH-RSN,9.87,Finca Asuncion - far W of Acatenango
+PCG,pacaya,14.392500,-90.608700,INSIVUMEH-RSN,1.62,Cerro Chino - on Pacaya flank (closest)
+PCG6,pacaya,14.366157,-90.577754,INSIVUMEH-RSN,2.94,Finca El Muneco - Villa Canales
+PCG2,pacaya,14.376623,-90.631834,INSIVUMEH-RSN,3.34,Repetidora Emisoras Unidas
+PCG5,pacaya,14.360360,-90.627702,INSIVUMEH-RSN,3.61,Finca Piedras Negras
+PCG4,pacaya,14.341800,-90.601000,INSIVUMEH-RSN,4.25,Finca el Amate - Villa Canales
+SAOB,agua,14.517130,-90.733314,INSIVUMEH-RSN,5.78,San Juan del Obispo - only RSN station near Volcan de Agua
