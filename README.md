@@ -1,6 +1,6 @@
 # Muon Tomography of Guatemalan Volcanoes
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20560417.svg)](https://doi.org/10.5281/zenodo.20560417)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20560417-blue)](https://doi.org/10.5281/zenodo.20560417)
 
 CORSIKA-based simulation pipeline + deep-learning analysis to image the internal density of four
 Guatemalan stratovolcanoes. The simulation feasibility study targets Volcán de Fuego as the
