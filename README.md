@@ -1,5 +1,7 @@
 # Muon Tomography of Guatemalan Volcanoes
 
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20560417-blue)](https://doi.org/10.5281/zenodo.20560417)
+
 CORSIKA-based simulation pipeline + deep-learning analysis to image the internal density of four
 Guatemalan stratovolcanoes. The simulation feasibility study targets Volcán de Fuego as the
 primary science case; Acatenango, Pacaya and Volcán de Agua provide calibration and comparison.
