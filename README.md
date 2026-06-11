@@ -2,14 +2,12 @@
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20560417-blue)](https://doi.org/10.5281/zenodo.20560417)
 
-CORSIKA-based simulation pipeline for muon radiography feasibility study of four
-Guatemalan volcanoes. The pipeline produces synthetic muograms, DEM-based opacity
-maps, and detector-siting metrics, establishing the observational prior needed to
-plan a first muon detector deployment in Guatemala.
+CORSIKA-based simulation pipeline for muon radiography of four Guatemalan volcanoes.
+The pipeline produces synthetic muograms, DEM-based opacity maps, and
+detector-siting metrics, establishing the observational prior needed to plan a
+first muon detector deployment in Guatemala.
 
-The methodological framework follows Vesga-Ramírez et al. (2019). This repository
-covers **Paper 1** (simulation feasibility study). Deep-learning extensions for
-surrogate modelling and super-resolution are planned for Paper 2.
+The methodological framework follows Vesga-Ramírez et al. (2019).
 
 ## Volcanoes
 
