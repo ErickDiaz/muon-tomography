@@ -2,22 +2,23 @@
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20560417-blue)](https://doi.org/10.5281/zenodo.20560417)
 
-CORSIKA-based simulation pipeline + deep-learning analysis to image the internal density of four
-Guatemalan stratovolcanoes. The simulation feasibility study targets Volcán de Fuego as the
-primary science case; Acatenango, Pacaya and Volcán de Agua provide calibration and comparison.
+CORSIKA-based simulation pipeline for muon radiography feasibility study of four
+Guatemalan volcanoes. The pipeline produces synthetic muograms, DEM-based opacity
+maps, and detector-siting metrics, establishing the observational prior needed to
+plan a first muon detector deployment in Guatemala.
 
-The methodological precedent is the Colombian work of Vesga-Ramírez et al. (2019). The main
-contribution of this project on top of that baseline is the integration of deep learning for
-super-resolution and surrogate forward modelling of the muon flux.
+The methodological framework follows Vesga-Ramírez et al. (2019). This repository
+covers **Paper 1** (simulation feasibility study). Deep-learning extensions for
+surrogate modelling and super-resolution are planned for Paper 2.
 
 ## Volcanoes
 
-| Volcán | Role | Altitude | Composition | Activity |
+| Volcán | Type | Role | Altitude | Activity |
 |---|---|---|---|---|
-| **Fuego** | Primary target | 3,763 m | Basalt | Highly active |
-| **Acatenango** | Calibration (known mass) | 3,976 m | Andesite | Dormant |
-| **Pacaya** | Secondary candidate | 2,552 m | Olivine basalt | Persistent |
-| **Volcán de Agua** | Secondary / calibration | 3,760 m | Andesite | Dormant |
+| **Fuego** | Stratovolcano | Primary target | 3,763 m | Highly active |
+| **Acatenango** | Stratovolcano | Secondary target / comparison | 3,976 m | Dormant |
+| **Pacaya** | Complex volcano | Secondary target | 2,552 m | Persistent |
+| **Volcán de Agua** | Stratovolcano | Geometric control case | 3,760 m | Extinct |
 
 ---
 
@@ -54,6 +55,14 @@ make install-no-dev        # omits jupyterlab and pytest
 
 Optional: `cp .env.example .env` if you want to override `CORSIKA_VERSION`, `HE_MODEL`, or
 `IMAGE_TAG` — otherwise the defaults in the Makefile are used.
+
+### DEM
+
+Download the Copernicus GLO-30 tile covering all four volcanoes (44 MB, no authentication):
+
+```bash
+make download-dem
+```
 
 ---
 
@@ -126,12 +135,16 @@ jupyter lab notebooks/
 
 | Notebook | Purpose |
 |---|---|
-| `01_inspect_run.ipynb` | Quick sanity inspection of a run |
+| `01_inspect_run.ipynb` | Quick sanity inspection of a single run |
 | `02_inspect_muons.ipynb` | Muon kinematics + NSHOW convergence study |
-| `03_validation_reyna.ipynb` | Validation against the Reyna 2006 atmospheric muon flux |
-| `04_muograma_fuego.ipynb` | Synthetic muogram (conical model) of Fuego |
-| `05_muograma_dem_fuego.ipynb` | DEM-based muogram + opacity residual |
+| `03_validation_reyna.ipynb` | MC flux validation against Reyna 2006 parametrization |
+| `04_muograma_fuego.ipynb` | Synthetic muogram (conical model), parametric by volcano |
+| `05_muograma_dem_fuego.ipynb` | DEM-based muogram + opacity residual, parametric by volcano |
 | `06_timing_model.ipynb` | Linear model of CORSIKA run duration vs NSHOW |
+| `07_panorama_volcanoes.ipynb` | Opacity residuals for all 4 volcanoes + regional station map |
+| `08_detector_optimization.ipynb` | Information-score grid sweep + RSN station ranking |
+
+Paper figures are saved to `docs/paper/figures/` and copied manually to the paper repository.
 
 ---
 
@@ -139,10 +152,19 @@ jupyter lab notebooks/
 
 ```
 muon-tomography/
-├── analysis/           Python modules (CORSIKA parsers, ray tracing, Reyna parametrization)
+├── analysis/           Python modules (CORSIKA parsers, ray tracing, Reyna, muogram pipeline)
+├── data/
+│   ├── volcanoes.yaml          Volcano parameters (summit, cone geometry, default station)
+│   ├── detector_sites.csv      Curated INSIVUMEH-RSN station coordinates per target volcano
+│   ├── insivumeh_rsn_stations.csv  Full RSN station registry (32 sites)
+│   └── dem/                    Copernicus GLO-30 GeoTIFF (gitignored, download with make)
 ├── docker/             Dockerfile and coconut.expect for the thesis-corsika image
-├── docs/               Project documentation (corsika_*.md, paper/, …)
-├── notebooks/          Jupyter analysis notebooks
+├── docs/
+│   ├── corsika_instalacion.md  Manual CORSIKA install and coconut walkthrough
+│   ├── corsika_parametros.md   Steering parameters with physical justification
+│   └── paper/
+│       └── figures/            Paper figures exported from notebooks (gitignored from paper repo)
+├── notebooks/          Jupyter analysis notebooks (01–08)
 ├── scripts/            Helper scripts (run_batch, sim_status, manifest tools, …)
 ├── sim/
 │   ├── steering/       Parametric CORSIKA steering templates (one per volcano)
@@ -189,3 +211,4 @@ Run `make help` for the full list with descriptions. The targets cluster as:
 - Vesga-Ramírez et al. 2019, *Muon Tomography sites for Colombian volcanoes*, arXiv:1705.09884
 - Heck et al. 1998, *CORSIKA: A Monte Carlo Code to Simulate Extensive Air Showers*, FZKA 6019
 - Reyna 2006, *A Simple Parameterization of the Cosmic-Ray Muon Momentum Spectra at the Surface as a Function of Zenith Angle*, arXiv:hep-ph/0604145
+- European Space Agency 2022, *Copernicus DEM: Global and European Digital Elevation Model*, doi:10.5270/ESA-c5d3d65
