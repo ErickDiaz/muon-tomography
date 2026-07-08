@@ -6,6 +6,12 @@
 #   docker compose run --rm ml             # shell interactiva en ML (requiere GPU)
 #   docker compose run --rm corsika \
 #       bash -c "corsika < /work/sim/steering/fuego_test.inp > /work/sim/output/fuego_test.lst"
+#   docker compose run --rm --service-ports ml \
+#       jupyter lab --ip=0.0.0.0 --no-browser --allow-root   # notebooks en :8888
+#
+# MLflow es un servicio externo (no se levanta aqui, no se configura en este
+# archivo). El notebook fija su propio MLFLOW_TRACKING_URI en una celda al
+# inicio — editarla ahi antes de correr.
 
 services:
 
@@ -37,6 +43,10 @@ services:
       - ./sim:/work/sim                  # datasets generados por CORSIKA
       - ./ml:/work/ml                    # codigo y checkpoints ML
       - ./data:/work/data                # datos compartidos con CORSIKA
+      - ./notebooks:/work/notebooks       # notebooks del pipeline (incl. surrogate)
+      - ./analysis:/work/analysis         # CorsikaRun, muograma, reyna (import por path)
+    ports:
+      - "8888:8888"                       # JupyterLab
     stdin_open: true
     tty: true
     # GPU passthrough — requiere nvidia-container-toolkit instalado en el host
