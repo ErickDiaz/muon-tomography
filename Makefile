@@ -150,6 +150,7 @@ shell-ml:  ## Abrir shell interactiva en thesis-ml (con GPU)
 JUPYTER_ML_PORT ?= 8889
 
 jupyter-ml:  ## JupyterLab dentro de thesis-ml (GPU, puerto $(JUPYTER_ML_PORT) por defecto — distinto del jupyter normal para poder correr ambos a la vez). Reenvia MLFLOW_TRACKING_USERNAME/PASSWORD del host si estan exportadas (auth basica de nginx delante del servidor MLflow externo); MLFLOW_TRACKING_URI se fija en una celda del notebook, no aqui.
+	@mkdir -p ml  # si Docker la crea al montar el volumen, queda root:root y el user mapeado no puede escribir
 	docker run -it $(RUN_FLAGS) --gpus all --shm-size=8g \
 		-v $(PWD)/ml:/work/ml \
 		-v $(PWD)/notebooks:/work/notebooks \

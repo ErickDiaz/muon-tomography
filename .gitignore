@@ -60,3 +60,7 @@ sim/timings.csv
 # Plan de batch personal (cada usuario el suyo). El template versionado
 # es sim/runs_plan.example.yaml; copialo como sim/runs_plan.yaml y editalo.
 sim/runs_plan.yaml
+
+# Salidas/checkpoints generados por los notebooks ML (montado en thesis-ml
+# como /work/ml) — artefactos locales, no fuente.
+ml/
