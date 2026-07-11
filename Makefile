@@ -48,7 +48,7 @@ PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 .PHONY: help \
 	install install-no-dev poetry-shell export-requirements jupyter jupyter-detached jupyter-stop \
 	check-tarball build build-corsika build-ml build-all \
-	shell shell-corsika shell-ml \
+	shell shell-corsika shell-ml jupyter-ml \
 	verify-corsika test-corsika corsika-run \
 	batch-start batch-stop sim-status \
 	runs backfill-runs \
@@ -146,6 +146,15 @@ shell-corsika:  ## Abrir shell interactiva en thesis-corsika
 
 shell-ml:  ## Abrir shell interactiva en thesis-ml (con GPU)
 	docker run -it $(RUN_FLAGS) --gpus all --shm-size=8g $(ML_IMAGE)
+
+jupyter-ml:  ## JupyterLab dentro de thesis-ml (GPU, puerto 8888). MLFLOW_TRACKING_URI se fija en una celda del notebook, no aqui.
+	docker run -it $(RUN_FLAGS) --gpus all --shm-size=8g \
+		-v $(PWD)/ml:/work/ml \
+		-v $(PWD)/notebooks:/work/notebooks \
+		-v $(PWD)/analysis:/work/analysis \
+		-p 8888:8888 \
+		$(ML_IMAGE) \
+		jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
 
 verify-corsika:  ## Validar la imagen ejecutando el ejemplo all-inputs de CORSIKA
 	docker run $(RUN_FLAGS) $(CORSIKA_IMAGE) bash -c \

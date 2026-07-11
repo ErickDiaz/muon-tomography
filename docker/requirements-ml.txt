@@ -1,7 +1,13 @@
 # Dependencias ML adicionales para thesis-ml (Fase 3).
 # PyTorch/torchvision vienen en la imagen base — no instalar aqui.
 
+# Notebooks (no vienen en requirements.txt base: es un grupo opcional de
+# poetry que `export-requirements` no exporta)
+jupyterlab>=4.0
+ipykernel>=6.27
+
 # Tracking de experimentos
+mlflow>=2.14
 tensorboard>=2.16
 wandb>=0.17
 
