@@ -48,7 +48,7 @@ PY := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3)
 .PHONY: help \
 	install install-no-dev poetry-shell export-requirements jupyter jupyter-detached jupyter-stop \
 	check-tarball build build-corsika build-ml build-all \
-	shell shell-corsika shell-ml jupyter-ml \
+	shell shell-corsika shell-ml jupyter-ml jupyter-ml-detached jupyter-ml-stop \
 	verify-corsika test-corsika corsika-run \
 	batch-start batch-stop sim-status \
 	runs backfill-runs \
@@ -159,6 +159,27 @@ jupyter-ml:  ## JupyterLab dentro de thesis-ml (GPU, puerto $(JUPYTER_ML_PORT) p
 		-e MLFLOW_TRACKING_PASSWORD \
 		$(ML_IMAGE) \
 		jupyter lab --ip=0.0.0.0 --port=$(JUPYTER_ML_PORT) --no-browser
+
+jupyter-ml-detached:  ## Igual que jupyter-ml pero en tmux 'jupyter-ml' (no ocupa la terminal, sobrevive SSH disconnects)
+	@command -v tmux >/dev/null || (echo "ERROR: tmux no esta instalado" && exit 1)
+	@if tmux has-session -t jupyter-ml 2>/dev/null; then \
+		echo "tmux session 'jupyter-ml' ya esta corriendo."; \
+		echo "  ver token:  tmux attach -t jupyter-ml   (Ctrl+B D detach)"; \
+		echo "  detener:    make jupyter-ml-stop"; \
+		exit 1; \
+	fi
+	tmux new-session -d -s jupyter-ml "cd $(PWD) && make jupyter-ml"
+	@echo "JupyterLab (thesis-ml) corriendo en tmux session 'jupyter-ml' (sobrevive SSH disconnects)."
+	@echo "  ver token:  tmux attach -t jupyter-ml   (Ctrl+B D detach)"
+	@echo "  detener:    make jupyter-ml-stop"
+
+jupyter-ml-stop:  ## Matar la sesion tmux 'jupyter-ml' (y el contenedor --rm adentro)
+	@if tmux has-session -t jupyter-ml 2>/dev/null; then \
+		tmux kill-session -t jupyter-ml; \
+		echo "tmux session 'jupyter-ml' (y el contenedor thesis-ml adentro) detenida."; \
+	else \
+		echo "No hay session tmux 'jupyter-ml' corriendo."; \
+	fi
 
 verify-corsika:  ## Validar la imagen ejecutando el ejemplo all-inputs de CORSIKA
 	docker run $(RUN_FLAGS) $(CORSIKA_IMAGE) bash -c \
