@@ -147,14 +147,16 @@ shell-corsika:  ## Abrir shell interactiva en thesis-corsika
 shell-ml:  ## Abrir shell interactiva en thesis-ml (con GPU)
 	docker run -it $(RUN_FLAGS) --gpus all --shm-size=8g $(ML_IMAGE)
 
-jupyter-ml:  ## JupyterLab dentro de thesis-ml (GPU, puerto 8888). MLFLOW_TRACKING_URI se fija en una celda del notebook, no aqui.
+JUPYTER_ML_PORT ?= 8889
+
+jupyter-ml:  ## JupyterLab dentro de thesis-ml (GPU, puerto $(JUPYTER_ML_PORT) por defecto — distinto del jupyter normal para poder correr ambos a la vez). MLFLOW_TRACKING_URI se fija en una celda del notebook, no aqui.
 	docker run -it $(RUN_FLAGS) --gpus all --shm-size=8g \
 		-v $(PWD)/ml:/work/ml \
 		-v $(PWD)/notebooks:/work/notebooks \
 		-v $(PWD)/analysis:/work/analysis \
-		-p 8888:8888 \
+		-p $(JUPYTER_ML_PORT):$(JUPYTER_ML_PORT) \
 		$(ML_IMAGE) \
-		jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+		jupyter lab --ip=0.0.0.0 --port=$(JUPYTER_ML_PORT) --no-browser
 
 verify-corsika:  ## Validar la imagen ejecutando el ejemplo all-inputs de CORSIKA
 	docker run $(RUN_FLAGS) $(CORSIKA_IMAGE) bash -c \
