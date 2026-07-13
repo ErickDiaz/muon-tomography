@@ -64,3 +64,11 @@ sim/runs_plan.yaml
 # Salidas/checkpoints generados por los notebooks ML (montado en thesis-ml
 # como /work/ml) — artefactos locales, no fuente.
 ml/
+
+# CSVs/PNGs intermedios de NB09 (se guardan junto al notebook, no en ml/, para
+# evitar problemas de permisos con el bind mount) — quedan archivados en
+# MLflow como artifact, no hace falta versionarlos.
+notebooks/surrogate_eval_table.csv
+notebooks/surrogate_eval_plot.png
+notebooks/surrogate_tail_summary.csv
+notebooks/surrogate_transmission_comparison.png
