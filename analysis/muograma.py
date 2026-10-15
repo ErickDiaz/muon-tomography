@@ -177,19 +177,39 @@ def rock_opacity_grid(
         Array 2D (len(theta), len(phi)) con la opacidad en g/cm².
     """
     theta_grid, phi_grid = np.meshgrid(theta_rad, phi_rad, indexing="ij")
+    return rock_opacity_rays(volcano, detector_xyz, theta_grid, phi_grid,
+                             max_length_m=max_length_m, n_steps=n_steps)
+
+
+def rock_opacity_rays(
+    volcano: ConicalVolcano,
+    detector_xyz: tuple[float, float, float],
+    theta_rad: np.ndarray,
+    phi_rad: np.ndarray,
+    max_length_m: float = 20_000.0,
+    n_steps: int = 400,
+) -> np.ndarray:
+    """Opacidad L en g/cm² para rayos sueltos (theta_rad, phi_rad de igual shape).
+
+    Misma integracion que `rock_opacity_grid`, pero sin imponer una malla
+    producto: util para trazar solo los rayos de una region (p. ej. el
+    crater) con resolucion angular fina.
+    """
+    theta_rad, phi_rad = np.broadcast_arrays(np.asarray(theta_rad, float),
+                                             np.asarray(phi_rad, float))
     # Vector unitario de direccion del rayo:
     # theta = 0 → +z (vertical arriba); theta = pi/2 → horizontal.
-    dx = np.sin(theta_grid) * np.cos(phi_grid)
-    dy = np.sin(theta_grid) * np.sin(phi_grid)
-    dz = np.cos(theta_grid)
+    dx = np.sin(theta_rad) * np.cos(phi_rad)
+    dy = np.sin(theta_rad) * np.sin(phi_rad)
+    dz = np.cos(theta_rad)
 
     t = np.linspace(0.0, max_length_m, n_steps + 1)
-    # Broadcast a forma (Nθ, Nφ, Nsteps+1)
-    x = detector_xyz[0] + t[None, None, :] * dx[:, :, None]
-    y = detector_xyz[1] + t[None, None, :] * dy[:, :, None]
-    z = detector_xyz[2] + t[None, None, :] * dz[:, :, None]
+    # Broadcast a forma (..., Nsteps+1)
+    x = detector_xyz[0] + t * dx[..., None]
+    y = detector_xyz[1] + t * dy[..., None]
+    z = detector_xyz[2] + t * dz[..., None]
 
-    inside = volcano.is_inside(x, y, z)  # bool (Nθ, Nφ, Nsteps+1)
+    inside = volcano.is_inside(x, y, z)  # bool (..., Nsteps+1)
 
     # Longitud de paso en cm (para que opacidad = densidad * longitud salga en g/cm²)
     step_cm = (max_length_m / n_steps) * 100.0
@@ -197,83 +217,141 @@ def rock_opacity_grid(
     return inside.sum(axis=-1) * step_cm * volcano.density_gcc
 
 
-def csda_min_momentum(
-    opacity_gcm2: np.ndarray,
-    a: float = 2.0e-3,
-    b: float = 4.0e-6,
+_PDG_TABLE = Path(__file__).resolve().parent.parent / "data" / "pdg" / "muE_standard_rock.txt"
+
+
+def _load_csda_table() -> tuple[np.ndarray, np.ndarray]:
+    """(p [GeV/c], CSDA range [g/cm²]) de la tabla PDG de roca estandar.
+
+    Fuente: Groom, Mokhov & Striganov (2001), At. Data Nucl. Data Tables 78,
+    183; tabla `muE_standard_rock.txt` del PDG (10 MeV – 1 PeV).
+    """
+    p, rng = [], []
+    for line in _PDG_TABLE.read_text().splitlines():
+        cols = line.split()
+        # Filas numericas con rango CSDA valido; la fila "Minimum ionization"
+        # y los encabezados se descartan.
+        if len(cols) >= 9 and cols[0][0].isdigit() and cols[8][0].isdigit():
+            p.append(float(cols[1]) / 1e3)
+            rng.append(float(cols[8]))
+    p, rng = np.array(p), np.array(rng)
+    keep = p > 0.05  # el PDG advierte que < 10 MeV no es confiable
+    return p[keep], rng[keep]
+
+
+_CSDA_P, _CSDA_R = _load_csda_table()
+
+
+def crater_roi_mask(
+    detector_xyz: tuple[float, float, float],
+    theta_rad: np.ndarray,
+    phi_rad: np.ndarray,
+    summit_xyz: tuple[float, float, float],
+    radius_m: float = 500.0,
+    depth_m: float = 500.0,
 ) -> np.ndarray:
+    """Pixeles (θ, φ) cuyo rayo atraviesa la region del crater.
+
+    Region del crater = cilindro vertical de radio `radius_m` alrededor del
+    eje que pasa por la cima, entre z_cima - depth_m y z_cima. Un rayo esta en
+    la region si, en su punto de maxima aproximacion horizontal al eje, la
+    distancia horizontal es <= radius_m y la altura cae en ese intervalo.
+    Es una definicion geometrica: se desplaza correctamente con la posicion
+    del detector, a diferencia de una ventana angular fija.
+
+    Returns:
+        Mascara booleana (len(theta), len(phi)).
+    """
+    th, ph = np.meshgrid(theta_rad, phi_rad, indexing="ij")
+    hx, hy, nz = np.sin(th) * np.cos(ph), np.sin(th) * np.sin(ph), np.cos(th)
+    rx, ry = summit_xyz[0] - detector_xyz[0], summit_xyz[1] - detector_xyz[1]
+    t_star = (rx * hx + ry * hy) / (hx**2 + hy**2)
+    miss = np.hypot(rx - t_star * hx, ry - t_star * hy)
+    z_star = detector_xyz[2] + t_star * nz
+    return (t_star > 0) & (miss <= radius_m) & (z_star <= summit_xyz[2]) & (
+        z_star >= summit_xyz[2] - depth_m
+    )
+
+
+def csda_min_momentum(opacity_gcm2: np.ndarray) -> np.ndarray:
     """Momento minimo (GeV/c) que un muon necesita para atravesar `opacity_gcm2`.
 
-    Aproximacion Continuous Slowing Down (CSDA) con la parametrizacion
-    estandar -dE/dx = a + b·E (ionizacion + perdidas radiativas):
+    Invierte el rango CSDA tabulado de muones en roca estandar (PDG,
+    Groom et al. 2001), que incluye la dependencia en energia de la
+    ionizacion y de las perdidas radiativas. La aproximacion con
+    coeficientes constantes, E_min = (a/b)(exp(bX) - 1) con a = 2 MeV cm²/g
+    y b = 4e-6 cm²/g, sobrestima el rango en 11-12% entre 0.1 y 10 TeV y
+    por eso no se usa.
 
-        R(E) = (1/b) · ln(1 + b·E/a)
-        ⇒ E_min(X) = (a/b) · (exp(b·X) - 1)
-
-    Para muones en roca estandar (Z ≈ 11, A ≈ 22, ρ = 2.65 g/cm³):
-      a ≈ 2 MeV/(g/cm²) = 2e-3 GeV/(g/cm²)
-      b ≈ 4e-6 (g/cm²)⁻¹ (dominante a E ≳ 100 GeV)
-
-    A baja energia (b·X « 1) recupera la formula lineal E_min ≈ a·X.
+    Interpolacion lineal en (log R, log p). Opacidad 0 → 0. Opacidades
+    mayores que el ultimo valor tabulado (1 PeV) se fijan en 1 PeV: el
+    flujo por encima es despreciable (T ≈ 0).
 
     Args:
         opacity_gcm2: opacidad en g/cm². Escalar o array.
-        a, b: coeficientes de la perdida. Default = roca estandar.
 
     Returns:
-        Energia minima en GeV. Asumimos E ≈ pc para muones (m_μ ≈ 0.1 GeV, despreciable).
+        Momento minimo en GeV/c (E ≈ pc para muones a estas energias).
     """
     X = np.asarray(opacity_gcm2, dtype=float)
-    return (a / b) * (np.expm1(b * X))
+    log_p = np.interp(np.log(np.maximum(X, _CSDA_R[0])), np.log(_CSDA_R), np.log(_CSDA_P))
+    return np.where(X > 0, np.exp(log_p), 0.0)
 
 
 def integrated_flux_above(
     p_min_gevc: np.ndarray,
     theta_rad: np.ndarray | float,
-    p_upper_gevc: float = 5_000.0,
-    n_log_bins: int = 400,
+    p_upper_gevc: float = 1.0e7,
+    n_log_bins: int = 2000,
+    flux=reyna_flux,
 ) -> np.ndarray:
     """Flujo integrado por encima de p_min, a un dado theta.
 
-    ∫_{p_min}^{p_upper} I_Reyna(p, theta) dp
+    ∫_{p_min}^{p_upper} I(p, theta) dp
+
+    Calcula la integral acumulada (de arriba hacia abajo) sobre un grid
+    logaritmico comun para cada theta distinto, y la interpola en
+    (log p, log Φ) en p_min. Asi el resultado es continuo en p_min (sin
+    escalones de un bin) y el costo no escala con el numero de pixeles.
 
     Args:
         p_min_gevc: cota inferior (GeV/c). Escalar o array.
-        theta_rad: angulo cenital. Si array, debe broadcastear con p_min.
-        p_upper_gevc: cota superior (5 TeV cubre el ~99% del flujo).
-        n_log_bins: bines en escala logaritmica para integrar.
+        theta_rad: angulo cenital. Escalar o array que broadcastea con p_min.
+        p_upper_gevc: cota superior. 1e7 GeV/c: el flujo por encima es
+            despreciable incluso para los p_min multi-TeV del interior del
+            edificio. (Un corte en 5 TeV anula T en direcciones con
+            p_min > 5 TeV y subestima T por encima de ~1 TeV.)
+        n_log_bins: puntos del grid logaritmico entre 0.1 GeV/c y p_upper.
+        flux: I(p, theta) diferencial en (cm² s sr GeV/c)^-1.
 
     Returns:
-        Flujo integrado en (cm² s sr)^-1. Misma shape que p_min broadcastea con theta.
+        Flujo integrado en (cm² s sr)^-1, con la shape de broadcast(p_min, theta).
     """
-    p_min = np.asarray(p_min_gevc, dtype=float)
-    # Evitar log(0): suelo en 0.1 GeV/c (debajo de eso Reyna no esta calibrada)
-    p_min = np.maximum(p_min, 0.1)
-
-    # Para cada p_min hacemos una integral logaritmica de p_min a p_upper.
-    # Vectorizamos: shape de salida = shape de p_min.
-    # Usamos un grid comun en log para todos los puntos, integramos por trapezoidal,
-    # pero recortando bajo p_min (el integrando es 0 ahi).
-    log_grid = np.linspace(np.log10(0.1), np.log10(p_upper_gevc), n_log_bins)
-    p_grid = 10**log_grid  # (n_log_bins,)
-    theta_b = np.broadcast_to(theta_rad, p_min.shape) if not np.isscalar(theta_rad) else theta_rad
-    # Flux at each (p_grid, theta) — shape (..., n_log_bins)
-    p_expanded = np.broadcast_to(p_grid, p_min.shape + p_grid.shape)
-    theta_expanded = np.broadcast_to(
-        np.asarray(theta_b)[..., None] if not np.isscalar(theta_rad) else theta_rad,
-        p_min.shape + p_grid.shape,
+    p_min, theta = np.broadcast_arrays(
+        np.maximum(np.asarray(p_min_gevc, dtype=float), 0.1),
+        np.asarray(theta_rad, dtype=float),
     )
-    flux_grid = reyna_flux(p_expanded, theta_expanded)
-    # Mascara: solo p > p_min (extendido)
-    mask = p_expanded >= p_min[..., None]
-    integrand = np.where(mask, flux_grid, 0.0)
-    return np.trapezoid(integrand, x=p_grid, axis=-1)
+    p_grid = np.logspace(-1.0, np.log10(p_upper_gevc), n_log_bins)
+    log_p = np.log(p_grid)
+    out = np.zeros(p_min.shape)
+    for th in np.unique(theta):
+        sel = theta == th
+        f = flux(p_grid, th)
+        # Integral acumulada desde arriba: Φ(>p_grid[k]).
+        seg = 0.5 * (f[1:] + f[:-1]) * np.diff(p_grid)
+        cum = np.concatenate([np.cumsum(seg[::-1])[::-1], [0.0]])
+        pos = cum > 0
+        log_phi = np.interp(np.log(p_min[sel]), log_p[pos], np.log(cum[pos]),
+                            right=-np.inf)
+        out[sel] = np.exp(log_phi)
+    return out
 
 
 def transmission_map(
     opacity_gcm2: np.ndarray,
     theta_rad: np.ndarray,
     p_threshold_gevc: float = 0.1,
+    flux=reyna_flux,
 ) -> np.ndarray:
     """Transmision T(θ,φ) = N(p>p_min(X), θ) / N(p>p_threshold, θ).
 
@@ -286,14 +364,17 @@ def transmission_map(
         theta_rad: angulo cenital de cada fila (Nθ,). Se broadcastea a (Nθ, Nφ).
         p_threshold_gevc: corte inferior del detector / aceptancia. 0.1 GeV/c
             es razonable para un detector tipico.
+        flux: parametrizacion I(p, theta) (default Reyna; ver
+            `analysis.flux_models` para Gaisser modificado / Guan).
 
     Returns:
         Transmision por pixel, shape (Nθ, Nφ).
     """
     theta_grid = np.broadcast_to(theta_rad[:, None], opacity_gcm2.shape)
     p_min = csda_min_momentum(opacity_gcm2)
-    N_with = integrated_flux_above(p_min, theta_grid)
-    N_open = integrated_flux_above(np.full_like(opacity_gcm2, p_threshold_gevc), theta_grid)
+    N_with = integrated_flux_above(p_min, theta_grid, flux=flux)
+    N_open = integrated_flux_above(np.full_like(opacity_gcm2, p_threshold_gevc), theta_grid,
+                                   flux=flux)
     # Donde el flujo abierto es 0 (theta cerca de 90°, no fisico aqui), evitar /0.
     return np.where(N_open > 0, N_with / N_open, 0.0)
 
@@ -370,6 +451,53 @@ def mc_transmission_map(
         n_below = np.searchsorted(ps, E_sub, side="right")
         T_mc[rows, :] = (len(ps) - n_below) / len(ps)
     return T_mc
+
+
+def density_fisher_information(
+    opacity_gcm2: np.ndarray,
+    theta_rad: np.ndarray,
+    roi: np.ndarray,
+    pixel_solid_angle_sr: np.ndarray,
+    exposure_cm2_s: float,
+    density_gcc: float = 2.65,
+    flux=reyna_flux,
+    rel_step: float = 0.01,
+) -> float:
+    """Informacion de Fisher sobre una densidad comun ρ de la region `roi`.
+
+    Para cada pixel, el numero esperado de muones es
+        N(ρ) = Φ(> p_min(L·ρ/ρ0), θ) · A·t · ΔΩ,
+    y con conteo Poisson la informacion es I_ρ = Σ_roi (∂N/∂ρ)² / N.
+    σ_ρ = I_ρ^(-1/2) es la precision alcanzable sobre la densidad media de
+    la region para esa exposicion (sin fondo ni sistematicos).
+
+    Args:
+        opacity_gcm2: L(θ,φ) calculada con `density_gcc` (Nθ, Nφ).
+        theta_rad: (Nθ,) angulos cenitales.
+        roi: mascara booleana (Nθ, Nφ) de la region a medir.
+        pixel_solid_angle_sr: ΔΩ por pixel, broadcastable a (Nθ, Nφ).
+        exposure_cm2_s: area efectiva × tiempo (cm²·s).
+        density_gcc: densidad de referencia ρ0 con la que se calculo L.
+        flux: parametrizacion I(p, theta).
+        rel_step: paso relativo para la derivada centrada en ρ.
+
+    Returns:
+        I_ρ en (g/cm³)^-2. 0 si la region esta vacia.
+    """
+    if not roi.any():
+        return 0.0
+    theta_grid = np.broadcast_to(theta_rad[:, None], opacity_gcm2.shape)[roi]
+    L = opacity_gcm2[roi]
+    dOmega = np.broadcast_to(pixel_solid_angle_sr, opacity_gcm2.shape)[roi]
+
+    def counts(scale: float) -> np.ndarray:
+        phi = integrated_flux_above(csda_min_momentum(L * scale), theta_grid, flux=flux)
+        return phi * exposure_cm2_s * dOmega
+
+    n0 = counts(1.0)
+    dn_drho = (counts(1.0 + rel_step) - counts(1.0 - rel_step)) / (2.0 * rel_step * density_gcc)
+    ok = n0 > 0
+    return float(np.sum(dn_drho[ok] ** 2 / n0[ok]))
 
 
 def muograma_information(

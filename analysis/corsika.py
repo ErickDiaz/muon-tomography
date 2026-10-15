@@ -466,14 +466,18 @@ class CorsikaRun:
             self.long_path = long_candidate if long_candidate.exists() else None
 
         lsts = sorted(self.output_dir.glob("*.lst"))
-        # Si pidieron run_number explicito y hay varios .lst, escoger el que
-        # contenga "RUNNR <run_number>" para no mezclar metadata entre corridas.
-        if self.run_number is not None and len(lsts) > 1:
-            needle = re.compile(rf"^\s*RUNNR\s+{self.run_number}\b", re.MULTILINE)
-            matches = [p for p in lsts if needle.search(p.read_text())]
-            if matches:
-                lsts = matches
-        self.lst_path = lsts[0] if lsts else None
+        if self.run_number is None:
+            self.lst_path = lsts[0] if lsts else None
+            return
+        # Con run_number explicito, solo aceptar un .lst de ESA corrida: el log
+        # de batch (logs/lst/NNNNNN.lst, relativo a la raiz del repo) o un .lst
+        # en output_dir que contenga "RUNNR <run_number>". Nunca caer en otro
+        # .lst: mezclaria metadata (OBSLEV, etc.) de otra corrida.
+        needle = re.compile(rf"^\s*RUNNR\s+{self.run_number}\b", re.MULTILINE)
+        batch_lst = self.output_dir.parent.parent / "logs" / "lst" / f"{self.run_number:06d}.lst"
+        candidates = [batch_lst] if batch_lst.exists() else []
+        candidates += [p for p in lsts if needle.search(p.read_text())]
+        self.lst_path = candidates[0] if candidates else None
 
     @property
     def has_lst(self) -> bool:

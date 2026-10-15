@@ -1,15 +1,15 @@
 name,target_volcan,lat,lon,fuente,dist_km,notes
-FG16,fuego,14.455036,-90.850824,INSIVUMEH-RSN,3.72,Finca Candelaria - closest to Fuego crater (SE)
-FG12,fuego,14.436506,-90.836061,INSIVUMEH-RSN,6.23,La Reunion - SE of Fuego
-FG3,fuego,14.436600,-90.835800,INSIVUMEH-RSN,6.25,Finca Candelaria - co-located near FG12
-FG17,fuego,14.426751,-90.926201,INSIVUMEH-RSN,7.16,Finca Asuncion - W of Fuego
-FG8,fuego,14.432500,-90.935400,INSIVUMEH-RSN,7.47,Panimache - W of Fuego
-FG16,acatenango,14.455036,-90.850824,INSIVUMEH-RSN,5.79,Same FG16; doubles as Acatenango candidate (shared subnet)
-FG12,acatenango,14.436506,-90.836061,INSIVUMEH-RSN,8.36,La Reunion - serves Acatenango too
-FG17,acatenango,14.426751,-90.926201,INSIVUMEH-RSN,9.87,Finca Asuncion - far W of Acatenango
-PCG,pacaya,14.392500,-90.608700,INSIVUMEH-RSN,1.62,Cerro Chino - on Pacaya flank (closest)
-PCG6,pacaya,14.366157,-90.577754,INSIVUMEH-RSN,2.94,Finca El Muneco - Villa Canales
-PCG2,pacaya,14.376623,-90.631834,INSIVUMEH-RSN,3.34,Repetidora Emisoras Unidas
-PCG5,pacaya,14.360360,-90.627702,INSIVUMEH-RSN,3.61,Finca Piedras Negras
-PCG4,pacaya,14.341800,-90.601000,INSIVUMEH-RSN,4.25,Finca el Amate - Villa Canales
-SAOB,agua,14.517130,-90.733314,INSIVUMEH-RSN,5.78,San Juan del Obispo - only RSN station near Volcan de Agua
+FG16,fuego,14.455036,-90.850824,INSIVUMEH-RSN,3.89,Finca Candelaria - closest to Fuego crater (SE)
+FG12,fuego,14.436506,-90.836061,INSIVUMEH-RSN,6.41,La Reunion - SE of Fuego
+FG3,fuego,14.4366,-90.8358,INSIVUMEH-RSN,6.42,Finca Candelaria - co-located near FG12
+FG17,fuego,14.426751,-90.926201,INSIVUMEH-RSN,7.24,Finca Asuncion - W of Fuego
+FG8,fuego,14.4325,-90.9354,INSIVUMEH-RSN,7.54,Panimache - W of Fuego
+FG16,acatenango,14.455036,-90.850824,INSIVUMEH-RSN,5.77,Same FG16; doubles as Acatenango candidate (shared subnet)
+FG12,acatenango,14.436506,-90.836061,INSIVUMEH-RSN,8.34,La Reunion - serves Acatenango too
+FG17,acatenango,14.426751,-90.926201,INSIVUMEH-RSN,9.84,Finca Asuncion - far W of Acatenango
+PCG,pacaya,14.3925,-90.6087,INSIVUMEH-RSN,1.43,Cerro Chino - on Pacaya flank (closest)
+PCG6,pacaya,14.366157,-90.577754,INSIVUMEH-RSN,3.06,Finca El Muneco - Villa Canales
+PCG2,pacaya,14.376623,-90.631834,INSIVUMEH-RSN,3.38,Repetidora Emisoras Unidas
+PCG5,pacaya,14.36036,-90.627702,INSIVUMEH-RSN,3.75,Finca Piedras Negras
+PCG4,pacaya,14.3418,-90.601,INSIVUMEH-RSN,4.45,Finca el Amate - Villa Canales
+SAOB,agua,14.51713,-90.733314,INSIVUMEH-RSN,5.86,San Juan del Obispo - only RSN station near Volcan de Agua

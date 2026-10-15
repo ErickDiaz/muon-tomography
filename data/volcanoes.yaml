@@ -3,12 +3,14 @@
 # volcano without hardcoding cone/summit/density values inside each cell.
 #
 # Fields:
-#   lat, lon          : catalogued crater coordinates (WGS84, decimal degrees)
-#   summit_m          : catalogued summit elevation (m a.s.l.). The DEM
-#                       may report a slightly different value (~10-30 m
-#                       off) because of eruptive deposits and 30 m
-#                       resolution. The simulation uses the DEM value
-#                       via terrain.summit_elevation.
+#   lat, lon          : summit coordinates (WGS84, decimal degrees) from the
+#                       Smithsonian GVP VOTW database (queried 2026-10-14).
+#                       Earlier GVP values (Fuego 14.473/-90.880, Pacaya
+#                       14.380) fell 220-250 m from the DEM summit, on the
+#                       upper flank; the current values sit within one DEM
+#                       pixel or two of the summit.
+#   summit_m          : GVP summit elevation (m a.s.l.). The simulation uses
+#                       the DEM value at (lat, lon) via terrain.summit_elevation.
 #   cone:
 #     base_m          : elevation of the base of the synthetic cone
 #                       (control case for NB 04 and the "cono" panel of
@@ -26,9 +28,9 @@
 #                       data/detector_sites.csv.
 
 fuego:
-  lat: 14.473
-  lon: -90.880
-  summit_m: 3763
+  lat: 14.4748
+  lon: -90.8806
+  summit_m: 3799
   cone:
     base_m: 2500
     base_radius_m: 1500
@@ -46,9 +48,9 @@ acatenango:
   default_station: FG16     # shared with Fuego; no RSN station dedicated to Acatenango
 
 pacaya:
-  lat: 14.380
+  lat: 14.382
   lon: -90.601
-  summit_m: 2552
+  summit_m: 2569
   cone:
     base_m: 1500
     base_radius_m: 1200
@@ -56,7 +58,7 @@ pacaya:
   default_station: PCG      # Cerro Chino — on the Pacaya flank, 1.6 km from crater
 
 agua:
-  lat: 14.466
+  lat: 14.465
   lon: -90.743
   summit_m: 3760
   cone:
