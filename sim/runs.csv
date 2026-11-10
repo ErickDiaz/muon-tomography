@@ -1,0 +1,12 @@
+runnr,volcan,detector_pos,started_at,nshow,duration_sec,host,he_model,obslev_cm,magnet_h,magnet_v,atmod,status,steering_snapshot,dat_path,notes
+1001,fuego,1,2026-05-14T08:12:28-06:00,500,,,1,200000.0,28.6,30.5,1,ok,sim/output/fuego_test.lst,sim/output/DAT001001,fuego_test (500 showers)
+1050,fuego,1,2026-05-18T04:48:19-06:00,5000,,,1,250000.0,28.6,30.5,1,ok,sim/output/fuego_5k.lst,sim/output/DAT001050,fuego intermedio (5k)
+1101,fuego,1,2026-05-14T11:05:28-06:00,50000,,,1,250000.0,28.6,30.5,1,ok,sim/output/fuego_prod.lst,sim/output/DAT001101,fuego_prod (50k showers)
+2001,fuego,1,2026-05-18T05:03:53-06:00,100,18,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002001,"backfill — .lst perdido, valores del template del Fuego"
+2010,fuego,1,2026-05-18T05:04:46-06:00,1000,25,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002010,"backfill — .lst perdido, valores del template del Fuego"
+2020,fuego,1,2026-05-18T07:22:29-06:00,2000,25,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002020,"backfill — .lst perdido, valores del template del Fuego"
+2060,fuego,1,2026-05-18T07:23:29-06:00,6000,48,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002060,"backfill — .lst perdido, valores del template del Fuego"
+2100,fuego,1,2026-05-18T05:06:24-06:00,10000,63,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002100,"backfill — .lst perdido, valores del template del Fuego"
+2300,fuego,1,2026-05-18T07:03:51-06:00,30000,125,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002300,"backfill — .lst perdido, valores del template del Fuego"
+2900,fuego,1,2026-05-18T07:10:06-06:00,90000,296,alcyon,1,250000.0,28.6,30.5,1,ok,,sim/output/DAT002900,"backfill — .lst perdido, valores del template del Fuego"
+2901,fuego,1,2026-05-18T08:43:38-06:00,100000,327,alcyon,1,250000.0,28.6,30.5,1,ok,logs/lst/002901.lst,sim/output/DAT002901,
